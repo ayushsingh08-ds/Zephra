@@ -10,7 +10,7 @@ It’s designed with a **public health focus**, helping communities and policyma
 ## Tech Stack:
 
 - **Frontend**: React.js, CSS, Progressive Web App (PWA)  
-- **Backend**: Python with FastAPI, FAISS, HuggingFace Transformers  
+- **Backend**: Python with FastAPI 
 - **Model**: Mistral LLM (for smart health insights)  
 - **Data**: NASA TEMPO + ground-based air quality sensors  
 - **Deployment**: Render (Backend), Vercel (Frontend)
