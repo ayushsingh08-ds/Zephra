@@ -15,8 +15,11 @@
 }
 
 .logo-image{
-  height: 140px;
-  margin-bottom: 20px;
+  height: 6rem;
+  width: auto;
+  margin: 0;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 /* GLOBAL ANIMATED BACKGROUND FOR ENTIRE PAGE */
@@ -43,79 +46,84 @@
   height: 8px;
   background: rgba(77, 160, 219, 0.6);
   border-radius: 50%;
-  animation: float-particle 15s infinite linear;
+  border: 1px solid rgba(77, 160, 219, 0.4);
+  box-shadow: 
+    0 0 10px rgba(77, 160, 219, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  animation: bubble-float 20s infinite linear;
+  opacity: 0;
 }
 
 .particle:nth-child(1) {
-  left: 5%;
+  left: 8%;
   animation-delay: 0s;
-  animation-duration: 12s;
-}
-
-.particle:nth-child(2) {
-  left: 15%;
-  animation-delay: 2s;
   animation-duration: 18s;
 }
 
+.particle:nth-child(2) {
+  left: 18%;
+  animation-delay: -3s;
+  animation-duration: 22s;
+}
+
 .particle:nth-child(3) {
-  left: 25%;
-  animation-delay: 4s;
-  animation-duration: 15s;
-}
-
-.particle:nth-child(4) {
-  left: 35%;
-  animation-delay: 6s;
-  animation-duration: 20s;
-}
-
-.particle:nth-child(5) {
-  left: 45%;
-  animation-delay: 8s;
-  animation-duration: 14s;
-}
-
-.particle:nth-child(6) {
-  left: 55%;
-  animation-delay: 10s;
+  left: 28%;
+  animation-delay: -6s;
   animation-duration: 16s;
 }
 
-.particle:nth-child(7) {
-  left: 65%;
-  animation-delay: 1s;
-  animation-duration: 13s;
+.particle:nth-child(4) {
+  left: 38%;
+  animation-delay: -9s;
+  animation-duration: 24s;
 }
 
-.particle:nth-child(8) {
-  left: 75%;
-  animation-delay: 3s;
+.particle:nth-child(5) {
+  left: 48%;
+  animation-delay: -12s;
   animation-duration: 19s;
 }
 
-.particle:nth-child(9) {
-  left: 85%;
-  animation-delay: 5s;
-  animation-duration: 17s;
-}
-
-.particle:nth-child(10) {
-  left: 95%;
-  animation-delay: 7s;
-  animation-duration: 11s;
-}
-
-.particle:nth-child(11) {
-  left: 10%;
-  animation-delay: 9s;
+.particle:nth-child(6) {
+  left: 58%;
+  animation-delay: -15s;
   animation-duration: 21s;
 }
 
+.particle:nth-child(7) {
+  left: 68%;
+  animation-delay: -1s;
+  animation-duration: 17s;
+}
+
+.particle:nth-child(8) {
+  left: 78%;
+  animation-delay: -4s;
+  animation-duration: 23s;
+}
+
+.particle:nth-child(9) {
+  left: 88%;
+  animation-delay: -7s;
+  animation-duration: 20s;
+}
+
+.particle:nth-child(10) {
+  left: 92%;
+  animation-delay: -10s;
+  animation-duration: 15s;
+}
+
+.particle:nth-child(11) {
+  left: 12%;
+  animation-delay: -13s;
+  animation-duration: 25s;
+}
+
 .particle:nth-child(12) {
-  left: 90%;
-  animation-delay: 11s;
-  animation-duration: 13s;
+  left: 82%;
+  animation-delay: -16s;
+  animation-duration: 18s;
 }
 
 .gradient-orbs {
@@ -229,16 +237,17 @@
 .hero-title {
   font-size: 6rem;
   font-weight: 800;
-  margin-bottom: 30px;
+  margin: 0;
   line-height: 1;
   letter-spacing: -3px;
 }
 
 .logo-intro{
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: baseline;
+  gap: 20px;
   justify-content: center;
+  margin-bottom: 30px;
 }
 
 .title-word {
@@ -278,6 +287,7 @@
 .highlight {
   position: relative;
   color: #1976d2;
+  padding: 1px;
   font-weight: 600;
 }
 
@@ -288,7 +298,7 @@
   left: 0;
   width: 100%;
   height: 3px;
-  background: linear-gradient(90deg, #4da0db, #1976d2);
+  background: linear-gradient(90deg, #4da0db82, #1976d292);
   animation: underline-expand 2s ease-out 1s both;
 }
 
@@ -545,19 +555,19 @@
 }
 
 /* ANIMATIONS */
-@keyframes float-particle {
+@keyframes bubble-float {
   0% {
-    transform: translateY(100vh) translateX(0px) rotate(0deg);
+    transform: translateY(100vh) translateX(0px);
     opacity: 0;
   }
   10% {
-    opacity: 1;
+    opacity: 0.8;
   }
   90% {
-    opacity: 1;
+    opacity: 0.8;
   }
   100% {
-    transform: translateY(-10vh) translateX(100px) rotate(360deg);
+    transform: translateY(-10vh) translateX(50px);
     opacity: 0;
   }
 }
@@ -723,13 +733,17 @@
 
 /* Glass Container */
 .glass-container {
-  background: #4da0db9c;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 30px;
+ background: rgba(77, 160, 219, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
   padding: 50px;
-  color: white;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  color: #1976d2;
+   box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(77, 160, 219, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   margin: 0 auto;
   max-width: 1000px;
 }
@@ -763,13 +777,17 @@
 }
 
 .feature-card {
-  background: #4da0db9c;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 30px;
-  padding: 40px;
-  color: white;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+ background: rgba(77, 160, 219, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.333);
+  border-radius: 25px;
+  padding: 25px;
+  color: #1976d2;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(77, 160, 219, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -818,7 +836,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
+ background: rgba(77, 160, 219, 0.15);
   border-radius: 50%;
   transition: all 0.3s ease;
 }
@@ -839,7 +857,7 @@
   font-size: 1.6rem;
   font-weight: 600;
   margin-bottom: 20px;
-  color: white;
+  color: #1976d2;
   letter-spacing: -0.5px;
 }
 
@@ -848,6 +866,7 @@
   line-height: 1.6;
   opacity: 0.9;
   margin: 0;
+  color: #1565c0;
 }
 
 /* Technology Section */
@@ -870,7 +889,7 @@
   font-size: 2.8rem;
   font-weight: 600;
   margin-bottom: 25px;
-  color: white;
+  color: #1976d2;
 }
 
 .tech-text p {
@@ -878,7 +897,7 @@
   line-height: 1.8;
   margin-bottom: 30px;
   opacity: 0.9;
-  color: white;
+  color: #1565c0;
 }
 
 .tech-features {
@@ -892,7 +911,7 @@
   opacity: 0.8;
   position: relative;
   padding-left: 30px;
-  color: white;
+  color: #1565c0;
   transition: all 0.2s ease;
 }
 
@@ -929,7 +948,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(77, 160, 219, 0.2);
   border-radius: 50%;
   animation: float 3s ease-in-out infinite;
 }
@@ -937,7 +956,7 @@
 .satellite-icon svg {
   width: 40px;
   height: 40px;
-  stroke: white;
+  stroke: #1976d2;
   stroke-width: 2;
 }
 
@@ -949,10 +968,10 @@
 .data-point {
   width: 12px;
   height: 12px;
-  background: white;
+  background: #1976d2;
   border-radius: 50%;
   animation: pulse 2s ease-in-out infinite;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 15px rgba(25, 118, 210, 0.5);
 }
 
 .data-point:nth-child(2) {
@@ -978,12 +997,13 @@
 }
 
 .impact-card {
-  background: #4da0db9c;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 30px;
+   background: rgba(77, 160, 219, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
   padding: 50px 30px;
-  color: white;
+  color: #1976d2;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   text-align: center;
   transition: all 0.3s ease;
@@ -1026,7 +1046,7 @@
   font-size: 1.2rem;
   font-weight: 500;
   opacity: 0.9;
-  color: white;
+  color: #1565c0;
 }
 
 /* Animations */
@@ -1059,6 +1079,10 @@
   .feature-card.large {
     grid-column: span 1;
   }
+
+  .section-badge{
+    margin-top: 16px;
+  }
   
   .glass-container {
     margin: 0 20px;
@@ -1078,8 +1102,9 @@
   }
 
   .logo-image{
-    width: 50px;
-    margin-bottom: 25px;
+    height: 3rem;
+    width: auto;
+    margin: 0;
   }
   
   .hero-section {
@@ -1155,6 +1180,17 @@
 }
 
 @media (max-width: 480px) {
+  .logo-image{
+    height: 3.5rem;
+    width: auto;
+    margin: 0;
+  }
+  
+  .logo-intro{
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
   .hero-title {
     font-size: 3.5rem;
   }
@@ -1220,5 +1256,12 @@
   
   .impact-card {
     padding: 40px 25px;
+  }
+}
+
+@media (min-width: 1268px) {
+  .logo-image{
+    padding-top: 20px;
+    height: 90px;
   }
 }
