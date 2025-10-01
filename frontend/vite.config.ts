@@ -8,12 +8,12 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['logo.png', 'icons/*.png'],
+      includeAssets: ['favicon.png', 'logo.png'],
       manifest: {
         name: 'Zephra - Air Quality Monitoring',
         short_name: 'Zephra',
         description: 'Real-time air quality monitoring powered by NASA satellite technology',
-        theme_color: '#e3f2fd',
+        theme_color: '#1976d2',
         background_color: '#e3f2fd',
         display: 'standalone',
         orientation: 'portrait-primary',
@@ -21,21 +21,34 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: '/icons/icon-192x192.png',
+            src: '/logo.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'maskable any'
+            purpose: 'any'
           },
           {
-            src: '/icons/icon-512x512.png',
+            src: '/logo.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'maskable any'
+            purpose: 'any'
+          },
+          {
+            src: '/logo.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        maximumFileSizeToCacheInBytes: 5000000, // 5MB limit
+        globPatterns: ['**/*.{js,css,html}'],
+        globIgnores: [
+          '**/node_modules/**/*',
+          '**/src/**/*',
+          '**/logo.png',
+          '**/favicon.png'
+        ],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.*/i,
@@ -50,22 +63,11 @@ export default defineConfig({
                 statuses: [0, 200]
               }
             }
-          },
-          {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images-cache',
-              expiration: {
-                maxEntries: 60,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
-              }
-            }
           }
         ]
       },
       devOptions: {
-        enabled: true
+        enabled: false
       }
     })
   ],

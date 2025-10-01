@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=TikTok+Sans:opsz,wght@12..36,300..900&display=swap');
+
+/* PWA Install Container */
+.pwa-install-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1001;
+  max-width: 350px;
+  width: calc(100% - 40px);
+  animation: slideInUp 0.3s ease-out;
+}
+
+.pwa-install-card {
+  background: rgba(77, 160, 219, 0.15);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.1),
+    0 8px 25px rgba(77, 160, 219, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  color: white;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.pwa-install-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.pwa-install-icon img {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.pwa-install-content h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-align: center;
+  color: #e3f2fd;
+}
+
+.pwa-install-content p {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  text-align: center;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.pwa-install-features {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.pwa-install-features span {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  color: #bbdefb;
+}
+
+.pwa-install-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.pwa-install-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Montserrat', sans-serif;
+}
+
+.pwa-install-btn.primary {
+  background: linear-gradient(135deg, #1976d2, #4da0db);
+  color: white;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+.pwa-install-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(25, 118, 210, 0.4);
+}
+
+.pwa-install-btn.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e3f2fd;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.pwa-install-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.pwa-install-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  line-height: 1;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pwa-install-close:hover {
+  color: white;
+}
+
+/* Animation */
+@keyframes slideInUp {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .pwa-install-container {
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-width: none;
+  }
+  
+  .pwa-install-card {
+    padding: 15px;
+  }
+  
+  .pwa-install-actions {
+    flex-direction: column;
+  }
+  
+  .pwa-install-btn {
+    width: 100%;
+    padding: 12px 20px;
+  }
+}
