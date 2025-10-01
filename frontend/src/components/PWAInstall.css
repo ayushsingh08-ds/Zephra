@@ -64,9 +64,10 @@
 }
 
 .pwa-install-features span {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   opacity: 0.8;
-  color: #bbdefb;
+  color: #ffffff;
+  font-weight: 500;
 }
 
 .pwa-install-actions {

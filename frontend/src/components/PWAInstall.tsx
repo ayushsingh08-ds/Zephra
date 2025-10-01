@@ -52,7 +52,7 @@ const PWAInstall: React.FC = () => {
     <div className="pwa-install-container">
       <div className="pwa-install-card">
         <div className="pwa-install-icon">
-          <img src="/logo.png" alt="Zephra" />
+          <img src="/icon.png" alt="Zephra" />
         </div>
         <div className="pwa-install-content">
           <h3>Install Zephra</h3>
