@@ -64,12 +64,12 @@ const About: React.FC = () => {
           
           <div className="hero-stats">
             <div className="stat-item">
-              <div className="stat-number">500K+</div>
+              <div className="stat-number">5+</div>
               <div className="stat-label">Active Users</div>
             </div>
             <div className="stat-divider"></div>
             <div className="stat-item">
-              <div className="stat-number">50+</div>
+              <div className="stat-number">0+</div>
               <div className="stat-label">Countries</div>
             </div>
             <div className="stat-divider"></div>
