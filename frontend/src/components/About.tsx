@@ -1,5 +1,6 @@
 import React from 'react';
 import './About.css';
+import logo from '../assets/logo.png'
 
 const About: React.FC = () => {
   return (
@@ -42,10 +43,12 @@ const About: React.FC = () => {
             </span>
             NASA-Powered Technology
           </div>
-          
+          <div className="logo-intro">
+            <img src={logo} alt="Zephra Logo" className='logo-image' />
           <h1 className="hero-title">
             <span className="title-word" data-text="Zephra">Zephra</span>
           </h1>
+          </div>
           
           <div className="hero-subtitle-container">
             <p className="hero-subtitle">

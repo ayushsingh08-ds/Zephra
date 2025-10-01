@@ -3,6 +3,8 @@ import Navigation from './components/Navigation';
 import Home from './components/Home';
 import About from './components/About';
 import MapView from './components/MapView';
+import PWABadge from './components/PWABadge';
+import InstallPrompt from './components/InstallPrompt';
 import './App.css'
 
 function App() {
@@ -17,6 +19,8 @@ function App() {
             <Route path="/map" element={<MapView />} />
           </Routes>
         </main>
+        <PWABadge />
+        <InstallPrompt />
       </div>
     </Router>
   )

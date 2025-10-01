@@ -85,7 +85,6 @@ const Navigation: React.FC = () => {
               className={location.pathname === '/' ? 'active' : ''}
               onClick={closeMenu}
             >
-              <span className="link-icon">🏠</span>
               Home
             </Link>
           </li>
@@ -95,7 +94,6 @@ const Navigation: React.FC = () => {
               className={location.pathname === '/about' ? 'active' : ''}
               onClick={closeMenu}
             >
-              <span className="link-icon">ℹ️</span>
               About
             </Link>
           </li>
@@ -105,7 +103,6 @@ const Navigation: React.FC = () => {
               className={location.pathname === '/map' ? 'active' : ''}
               onClick={closeMenu}
             >
-              <span className="link-icon">🗺️</span>
               MapView
             </Link>
           </li>

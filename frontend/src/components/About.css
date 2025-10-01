@@ -14,6 +14,11 @@
   margin-right: -50vw;
 }
 
+.logo-image{
+  height: 140px;
+  margin-bottom: 20px;
+}
+
 /* GLOBAL ANIMATED BACKGROUND FOR ENTIRE PAGE */
 .global-background {
   position: fixed;
@@ -34,8 +39,8 @@
 
 .particle {
   position: absolute;
-  width: 4px;
-  height: 4px;
+  width: 8px;
+  height: 8px;
   background: rgba(77, 160, 219, 0.6);
   border-radius: 50%;
   animation: float-particle 15s infinite linear;
@@ -227,6 +232,13 @@
   margin-bottom: 30px;
   line-height: 1;
   letter-spacing: -3px;
+}
+
+.logo-intro{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
 }
 
 .title-word {
@@ -1056,6 +1068,18 @@
 @media (max-width: 768px) {
   .about-container {
     padding: 100px 0 0;
+  }
+
+  .logo-intro {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .logo-image{
+    width: 50px;
+    margin-bottom: 25px;
   }
   
   .hero-section {
