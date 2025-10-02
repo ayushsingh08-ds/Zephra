@@ -48,6 +48,15 @@ const Navigation: React.FC = () => {
           </li>
           <li>
             <Link 
+              to="/dashboard" 
+              className={location.pathname === '/dashboard' ? 'active' : ''}
+              onClick={closeMenu}
+            >
+              Dashboard
+            </Link>
+          </li>
+          <li>
+            <Link 
               to="/about" 
               className={location.pathname === '/about' ? 'active' : ''}
               onClick={closeMenu}
@@ -92,6 +101,15 @@ const Navigation: React.FC = () => {
           </li>
           <li>
             <Link 
+              to="/dashboard" 
+              className={location.pathname === '/dashboard' ? 'active' : ''}
+              onClick={closeMenu}
+            >
+              Dashboard
+            </Link>
+          </li>
+          <li>
+            <Link 
               to="/about" 
               className={location.pathname === '/about' ? 'active' : ''}
               onClick={closeMenu}
@@ -105,7 +123,7 @@ const Navigation: React.FC = () => {
               className={location.pathname === '/map' ? 'active' : ''}
               onClick={closeMenu}
             >
-              MapView
+              Map
             </Link>
           </li>
         </ul>
