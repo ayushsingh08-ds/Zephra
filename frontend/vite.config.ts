@@ -13,7 +13,7 @@ export default defineConfig({
         name: 'Zephra - Air Quality Monitoring',
         short_name: 'Zephra',
         description: 'Real-time air quality monitoring powered by NASA satellite technology',
-        theme_color: '#1976d2',
+        theme_color: '#e3f2fd',
         background_color: '#e3f2fd',
         display: 'standalone',
         orientation: 'portrait-primary',
