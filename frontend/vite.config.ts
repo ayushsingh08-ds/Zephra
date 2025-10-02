@@ -13,12 +13,18 @@ export default defineConfig({
         name: 'Zephra - Air Quality Monitoring',
         short_name: 'Zephra',
         description: 'Real-time air quality monitoring powered by NASA satellite technology',
-        theme_color: '#e3f2fd',
+        theme_color: '#1976d2',
         background_color: '#e3f2fd',
         display: 'standalone',
         orientation: 'portrait-primary',
         scope: '/',
         start_url: '/',
+        categories: ['health', 'weather', 'utilities'],
+        prefer_related_applications: false,
+        display_override: ['window-controls-overlay', 'standalone'],
+        launch_handler: {
+          client_mode: 'focus-existing'
+        },
         icons: [
           {
             src: '/icon.png',
@@ -42,12 +48,10 @@ export default defineConfig({
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 5000000, // 5MB limit
-        globPatterns: ['**/*.{js,css,html}'],
+        globPatterns: ['**/*.{js,css,html,png,jpg,jpeg,svg,woff,woff2}'],
         globIgnores: [
           '**/node_modules/**/*',
-          '**/src/**/*',
-          '**/logo.png',
-          '**/favicon.png'
+          '**/src/**/*'
         ],
         runtimeCaching: [
           {
@@ -56,11 +60,44 @@ export default defineConfig({
             options: {
               cacheName: 'api-cache',
               expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 // 24 hours
               },
               cacheableResponse: {
                 statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+              }
+            }
+          },
+          {
+            urlPattern: /\.(?:woff|woff2|ttf|eot)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'fonts',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
               }
             }
           }

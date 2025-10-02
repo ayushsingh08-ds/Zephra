@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Home.css';
+import OfflineIndicator from './OfflineIndicator';
 
 interface AirQualityData {
   aqi: number;
@@ -152,6 +153,9 @@ const Home: React.FC = () => {
 
   return (
     <div className="home-container">
+      {/* Offline Indicator */}
+      <OfflineIndicator />
+      
       {/* Global Animated Background */}
       <div className="global-background">
         <div className="floating-particles">
@@ -301,7 +305,7 @@ const Home: React.FC = () => {
                 <span>Fetching latest data...</span>
               </div>
             ) : (
-              <div className="aqi-main-content">
+              <div className={`aqi-main-content ${airQualityData ? 'data-loaded' : ''}`}>
                 <div className="aqi-visual">
                   <div className="aqi-circle-container">
                     <div 
@@ -409,7 +413,7 @@ const Home: React.FC = () => {
       {/* Quick Stats Grid */}
       <section className="quick-stats">
         <h3 className="section-title">Air Quality Metrics</h3>
-        <div className="stats-grid">
+        <div className={`stats-grid ${airQualityData ? 'data-loaded' : ''}`}>
           <div className="stat-card">
             <div className="stat-icon pm25">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -471,7 +475,7 @@ const Home: React.FC = () => {
 
       {/* Weather & Environmental Data */}
       <section className="environmental-data">
-        <div className="data-grid">
+        <div className={`data-grid ${weatherData || alerts.length > 0 ? 'data-loaded' : ''}`}>
           <div className="data-card weather-card">
             <div className="card-header">
               <h4>Weather Conditions</h4>
