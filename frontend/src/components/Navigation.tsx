@@ -26,55 +26,57 @@ const Navigation: React.FC = () => {
   };
 
   return (
-    <nav className={`navigation ${isScrolled ? 'scrolled' : ''}`}>
-      <div className="nav-brand">
-        <Link to="/" onClick={closeMenu}>
-          <span className="brand-icon"><img src={logo} alt="Zephra Logo" /></span>
-          <span className="brand-text">Zephra</span>
-        </Link>
-      </div>
-      
-      {/* Desktop Menu */}
-      <ul className="nav-links desktop-menu">
-        <li>
-          <Link 
-            to="/" 
-            className={location.pathname === '/' ? 'active' : ''}
-            onClick={closeMenu}
-          >
-            Home
+    <nav className={`navigation ${isScrolled ? 'scrolled' : ''} ${isMenuOpen ? 'expanded' : ''}`}>
+      <div className="nav-header">
+        <div className="nav-brand">
+          <Link to="/" onClick={closeMenu}>
+            <span className="brand-icon"><img src={logo} alt="Zephra Logo" /></span>
+            <span className="brand-text">Zephra</span>
           </Link>
-        </li>
-        <li>
-          <Link 
-            to="/about" 
-            className={location.pathname === '/about' ? 'active' : ''}
-            onClick={closeMenu}
-          >
-            About
-          </Link>
-        </li>
-        <li>
-          <Link 
-            to="/map" 
-            className={location.pathname === '/map' ? 'active' : ''}
-            onClick={closeMenu}
-          >
-            Map
-          </Link>
-        </li>
-      </ul>
+        </div>
+        
+        {/* Desktop Menu */}
+        <ul className="nav-links desktop-menu">
+          <li>
+            <Link 
+              to="/" 
+              className={location.pathname === '/' ? 'active' : ''}
+              onClick={closeMenu}
+            >
+              Home
+            </Link>
+          </li>
+          <li>
+            <Link 
+              to="/about" 
+              className={location.pathname === '/about' ? 'active' : ''}
+              onClick={closeMenu}
+            >
+              About
+            </Link>
+          </li>
+          <li>
+            <Link 
+              to="/map" 
+              className={location.pathname === '/map' ? 'active' : ''}
+              onClick={closeMenu}
+            >
+              Map
+            </Link>
+          </li>
+        </ul>
 
-      {/* Mobile Menu Button */}
-      <button 
-        className={`mobile-menu-btn ${isMenuOpen ? 'active' : ''}`}
-        onClick={toggleMenu}
-        aria-label="Toggle mobile menu"
-      >
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
+        {/* Mobile Menu Button */}
+        <button 
+          className={`mobile-menu-btn ${isMenuOpen ? 'active' : ''}`}
+          onClick={toggleMenu}
+          aria-label="Toggle mobile menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
 
       {/* Mobile Menu */}
       <div className={`mobile-menu ${isMenuOpen ? 'active' : ''}`}>
@@ -108,9 +110,6 @@ const Navigation: React.FC = () => {
           </li>
         </ul>
       </div>
-
-      {/* Mobile Menu Overlay */}
-      {isMenuOpen && <div className="menu-overlay" onClick={closeMenu}></div>}
     </nav>
   );
 };

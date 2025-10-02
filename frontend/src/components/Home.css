@@ -1885,6 +1885,26 @@
     padding: 0 15px 45px;
   }
   
+  .actions-header {
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+  
+  .actions-header .section-title {
+    margin: 0;
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .view-all-btn {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+  
   .actions-grid {
     grid-template-columns: 1fr;
     gap: 18px;
