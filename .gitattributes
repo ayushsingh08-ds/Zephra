@@ -1,0 +1,13 @@
+
+*.tsx linguist-language=TypeScript
+*.ts linguist-language=TypeScript
+*.css linguist-language=CSS
+*.json linguist-documentation
+*.md linguist-documentation
+
+dist/* linguist-generated
+build/* linguist-generated
+node_modules/* linguist-vendored
+
+vite.config.ts linguist-language=TypeScript
+tsconfig*.json linguist-language=JSON
