@@ -1,10 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 
-/* Preload critical font weights only */
-
-/* Preload critical font weights only */
-
-/* Global PWA App Styling */
 * {
   box-sizing: border-box;
 }
@@ -24,7 +19,6 @@ html, body {
   transform: translateZ(0);
   backface-visibility: hidden;
   perspective: 1000px;
-  will-change: scroll-position;
 }
 
 .app {

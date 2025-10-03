@@ -119,7 +119,7 @@ const Dashboard: React.FC = () => {
 
   const fetchAvailableLocations = async () => {
     try {
-      const response = await fetch('/api/locations');
+      const response = await fetch('http://localhost:5000/api/locations');
       if (response.ok) {
         const locationData = await response.json();
         setLocations(locationData.locations || []);
@@ -134,7 +134,7 @@ const Dashboard: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/dashboard?location=${encodeURIComponent(selectedLocation)}`);
+      const response = await fetch(`http://localhost:5000/api/dashboard?location=${encodeURIComponent(selectedLocation)}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch data: ${response.status}`);
@@ -338,10 +338,10 @@ const Dashboard: React.FC = () => {
     return (
       <div className="dashboard-container">
         <div className="error-state">
-          <h2>⚠️ Data Unavailable</h2>
+          <h2>Data Unavailable</h2>
           <p>{error}</p>
           <button onClick={fetchDashboardData} className="retry-btn">
-            🔄 Retry
+            Retry
           </button>
         </div>
       </div>
@@ -381,9 +381,9 @@ const Dashboard: React.FC = () => {
 
       {error && (
         <div className="error-banner">
-          <span>⚠️ {error}</span>
+          <span>{error}</span>
           <button onClick={fetchDashboardData} className="retry-btn-small">
-            🔄 Retry
+            Retry
           </button>
         </div>
       )}
@@ -392,12 +392,12 @@ const Dashboard: React.FC = () => {
       <div className="dashboard-header">
         <div className="header-content">
           <div className="title-section">
-            <h1>🌍 NASA Air Quality Dashboard</h1>
+            <h1> NASA Air Quality Dashboard</h1>
             <p>Real-time environmental monitoring with satellite data integration</p>
             {data?.location_info && (
               <div className="location-info-header">
-                <span className="location-name">📍 {data.location_info.name}, {data.location_info.country}</span>
-                <span className="local-time">🕒 {data.location_info.local_time}</span>
+                <span className="location-name">{data.location_info.name}, {data.location_info.country}</span>
+                <span className="local-time">{data.location_info.local_time}</span>
               </div>
             )}
           </div>
@@ -449,12 +449,60 @@ const Dashboard: React.FC = () => {
       <div className="dashboard-nav">
         <div className="nav-container">
           {[
-            { key: 'overview', label: 'Overview', icon: '📊' },
-            { key: 'weather', label: 'Weather', icon: '🌤️' },
-            { key: 'air-quality', label: 'Air Quality', icon: '🌬️' },
-            { key: 'satellite', label: 'Satellite', icon: '🛰️' },
-            { key: 'health', label: 'Health', icon: '💚' },
-            { key: 'forecast', label: 'Forecast', icon: '🔮' }
+            { 
+              key: 'overview', 
+              label: 'Overview', 
+              icon: (
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                </svg>
+              )
+            },
+            { 
+              key: 'weather', 
+              label: 'Weather', 
+              icon: (
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2v2.95zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41-1.79 1.8z"/>
+                </svg>
+              )
+            },
+            { 
+              key: 'air-quality', 
+              label: 'Air Quality', 
+              icon: (
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14.48 11.95c.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31-.17 0-.31.14-.31.31 0 .17.14.31.31.31zm-2.98 0c.17 0 .31-.14.31-.31 0-.17-.14-.31-.31-.31-.17 0-.3.14-.3.31 0 .17.13.31.3.31zm-2.99 0c.17 0 .31-.14.31-.31 0-.17-.14-.31-.31-.31-.17 0-.3.14-.3.31 0 .17.13.31.3.31zm7.46-6.5c-.17 0-.31.14-.31.31 0 .17.14.31.31.31.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31zm-2.99 0c-.17 0-.3.14-.3.31 0 .17.13.31.3.31.17 0 .31-.14.31-.31 0-.17-.14-.31-.31-.31zm-2.98 0c-.17 0-.31.14-.31.31 0 .17.14.31.31.31.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31zm7.46 3.25c-.17 0-.31.14-.31.31 0 .17.14.31.31.31.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31zm-2.99 0c-.17 0-.3.14-.3.31 0 .17.13.31.3.31.17 0 .31-.14.31-.31 0-.17-.14-.31-.31-.31zm-2.98 0c-.17 0-.31.14-.31.31 0 .17.14.31.31.31.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31z"/>
+                </svg>
+              )
+            },
+            { 
+              key: 'satellite', 
+              label: 'Satellite', 
+              icon: (
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                </svg>
+              )
+            },
+            { 
+              key: 'health', 
+              label: 'Health', 
+              icon: (
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12s4.48 10 10 10 10-4.48 10-10zm-2.99-.5c0 3.86-3.13 7-7 7s-7-3.14-7-7 3.13-7 7-7 7 3.14 7 7zm-7-4v2H9.5v3h2.5v2.5h3V12.5H18v-3h-2.5V7h-3z"/>
+                </svg>
+              )
+            },
+            { 
+              key: 'forecast', 
+              label: 'Forecast', 
+              icon: (
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
+                </svg>
+              )
+            }
           ].map((tab) => (
             <button
               key={tab.key}
@@ -1139,129 +1187,28 @@ const Dashboard: React.FC = () => {
             {/* Forecast Summary */}
             <div className="chart-container">
               <h3>Forecast Summary</h3>
-              <Bar
-                data={{
-                  labels: forecastLabels,
-                  datasets: [
-                    {
-                      label: 'Predicted AQI',
-                      data: data?.forecast?.map(item => item.predicted_aqi) || [],
-                      backgroundColor: data?.forecast?.map(item => {
-                        const aqi = item.predicted_aqi;
-                        if (aqi <= 50) return 'rgba(76, 175, 80, 0.8)'; // Good - Green
-                        if (aqi <= 100) return 'rgba(255, 235, 59, 0.8)'; // Moderate - Yellow
-                        if (aqi <= 150) return 'rgba(255, 152, 0, 0.8)'; // Unhealthy for Sensitive - Orange
-                        if (aqi <= 200) return 'rgba(244, 67, 54, 0.8)'; // Unhealthy - Red
-                        return 'rgba(156, 39, 176, 0.8)'; // Very Unhealthy - Purple
-                      }) || [],
-                      borderColor: data?.forecast?.map(item => {
-                        const aqi = item.predicted_aqi;
-                        if (aqi <= 50) return 'rgba(76, 175, 80, 1)';
-                        if (aqi <= 100) return 'rgba(255, 235, 59, 1)';
-                        if (aqi <= 150) return 'rgba(255, 152, 0, 1)';
-                        if (aqi <= 200) return 'rgba(244, 67, 54, 1)';
-                        return 'rgba(156, 39, 176, 1)';
-                      }) || [],
-                      borderWidth: 2,
-                      borderRadius: 4,
-                      borderSkipped: false,
-                    },
-                    {
-                      label: 'Confidence %',
-                      data: data?.forecast?.map(item => item.confidence) || [],
-                      backgroundColor: 'rgba(158, 158, 158, 0.3)',
-                      borderColor: 'rgba(158, 158, 158, 0.8)',
-                      borderWidth: 1,
-                      borderRadius: 2,
-                      yAxisID: 'y1',
-                    }
-                  ]
-                }}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      position: 'top' as const,
-                      labels: {
-                        color: '#ffffff',
-                        font: { size: 12 },
-                        usePointStyle: true,
-                        pointStyle: 'rect'
-                      }
-                    },
-                    tooltip: {
-                      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                      titleColor: '#ffffff',
-                      bodyColor: '#ffffff',
-                      borderColor: '#4fc3f7',
-                      borderWidth: 1,
-                      callbacks: {
-                        afterBody: function(context) {
-                          if (context[0].datasetIndex === 0) {
-                            const aqi = context[0].parsed.y;
-                            let status = '';
-                            if (aqi <= 50) status = 'Good';
-                            else if (aqi <= 100) status = 'Moderate';
-                            else if (aqi <= 150) status = 'Unhealthy for Sensitive Groups';
-                            else if (aqi <= 200) status = 'Unhealthy';
-                            else status = 'Very Unhealthy';
-                            return [`Air Quality: ${status}`];
-                          }
-                          return [];
-                        }
-                      }
-                    }
-                  },
-                  scales: {
-                    x: {
-                      ticks: { color: '#ffffff', font: { size: 11 } },
-                      grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                    },
-                    y: {
-                      type: 'linear' as const,
-                      display: true,
-                      position: 'left' as const,
-                      title: {
-                        display: true,
-                        text: 'AQI Value',
-                        color: '#ffffff',
-                        font: { size: 12 }
-                      },
-                      ticks: { 
-                        color: '#ffffff',
-                        font: { size: 11 },
-                        stepSize: 25
-                      },
-                      grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                      min: 0,
-                      max: 300
-                    },
-                    y1: {
-                      type: 'linear' as const,
-                      display: true,
-                      position: 'right' as const,
-                      title: {
-                        display: true,
-                        text: 'Confidence %',
-                        color: '#ffffff',
-                        font: { size: 12 }
-                      },
-                      ticks: { 
-                        color: '#ffffff',
-                        font: { size: 11 }
-                      },
-                      grid: { drawOnChartArea: false },
-                      min: 0,
-                      max: 100
-                    }
-                  },
-                  interaction: {
-                    mode: 'index' as const,
-                    intersect: false,
-                  }
-                } as ChartOptions<'bar'>}
-              />
+              <div className="forecast-summary">
+                {data?.forecast?.map((item, index) => (
+                  <div key={index} className="forecast-item">
+                    <div className="forecast-time">{item.hour}</div>
+                    <div className="forecast-aqi">AQI: {Math.round(item.predicted_aqi)}</div>
+                    <div className="forecast-confidence">{Math.round(item.confidence)}% confident</div>
+                    <div className={`forecast-status ${
+                      item.predicted_aqi <= 50 ? 'good' :
+                      item.predicted_aqi <= 100 ? 'moderate' :
+                      item.predicted_aqi <= 150 ? 'unhealthy-sensitive' :
+                      item.predicted_aqi <= 200 ? 'unhealthy' :
+                      'very-unhealthy'
+                    }`}>
+                      {item.predicted_aqi <= 50 ? 'Good' :
+                       item.predicted_aqi <= 100 ? 'Moderate' :
+                       item.predicted_aqi <= 150 ? 'Unhealthy for Sensitive Groups' :
+                       item.predicted_aqi <= 200 ? 'Unhealthy' :
+                       'Very Unhealthy'}
+                    </div>
+                  </div>
+                )) || []}
+              </div>
             </div>
           </div>
         )}
