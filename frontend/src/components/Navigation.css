@@ -4,10 +4,10 @@
   justify-content: flex-start;
   align-items: center;
   padding: 0.7rem 2.5rem;
-  background: rgba(77, 160, 219, 0.15);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(47, 92, 192, 0.15);
+  background: rgba(77, 160, 219, 0.08);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(77, 160, 219, 0.15);
   border-radius: 35px;
   color: white;
   position: fixed;
@@ -19,10 +19,7 @@
   height: auto;
   min-height: 70px;
   max-height: 70px;
-  box-shadow: 
-    0 8px 32px rgba(43, 105, 143, 0.1),
-    0 4px 16px rgba(77, 160, 219, 0.1),
-    inset 0 1px 0 rgba(26, 103, 190, 0.1);
+  box-shadow: 0 8px 32px rgba(77, 160, 219, 0.08);
   z-index: 1000;
   transition: all 0.9s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: 'Montserrat', sans-serif;
@@ -33,10 +30,10 @@
   max-height: 350px;
   padding-bottom: 2rem;
   border-radius: 35px 35px 25px 25px;
-  box-shadow: 
-    0 25px 70px rgba(0, 0, 0, 0.15),
-    0 10px 30px rgba(77, 160, 219, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  background: rgba(77, 160, 219, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 12px 40px rgba(77, 160, 219, 0.12);
 }
 
 /* Navigation Header (Logo + Menu) */
@@ -49,14 +46,11 @@
 }
 
 .navigation.scrolled {
-  background: rgba(77, 160, 219, 0.25);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 
-    0 12px 40px rgba(0, 0, 0, 0.15),
-    0 6px 20px rgba(77, 160, 219, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  background: rgba(77, 160, 219, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(77, 160, 219, 0.2);
+  box-shadow: 0 12px 40px rgba(77, 160, 219, 0.12);
   transform: translateX(-50%) scale(0.98);
 }
 
@@ -97,23 +91,14 @@
 }
 
 .brand-text {
-  background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #ffffff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 0 15px rgba(255, 255, 255, 0.3);
   position: relative;
 }
 
-.brand-text::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #61dafb, #4da0db);
-  transition: width 0.3s ease;
-}
 
 .nav-brand a:hover .brand-text::after {
   width: 100%;
@@ -154,9 +139,10 @@
   position: relative;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid transparent;
-  backdrop-filter: blur(10px);
+  background: rgba(77, 160, 219, 0.06);
+  border: 1px solid rgba(77, 160, 219, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .nav-links a::before {
@@ -179,25 +165,18 @@
 }
 
 .nav-links a:hover {
-  background: rgba(97, 218, 251, 0.2);
-  border: 1px solid rgba(97, 218, 251, 0.3);
+  background: rgba(77, 160, 219, 0.15);
+  border: 1px solid rgba(77, 160, 219, 0.25);
   transform: translateY(-2px);
-  box-shadow: 
-    0 8px 25px rgba(97, 218, 251, 0.2),
-    0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 25px rgba(77, 160, 219, 0.15);
   color: #61dafb;
 }
 
 .nav-links a.active {
-  background: linear-gradient(135deg, 
-    rgba(97, 218, 251, 0.3), 
-    rgba(77, 160, 219, 0.3)
-  );
-  border: 1px solid rgba(97, 218, 251, 0.4);
+  background: rgba(77, 160, 219, 0.18);
+  border: 1px solid rgba(77, 160, 219, 0.3);
   color: #d5f6ff;
-  box-shadow: 
-    0 6px 20px rgba(97, 218, 251, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 6px 20px rgba(77, 160, 219, 0.18);
 }
 
 .link-icon {

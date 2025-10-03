@@ -35,16 +35,15 @@
 .floating-bubble {
   position: absolute;
   bottom: -10px;
-  width: 8px;
-  height: 8px;
-  background: rgba(77, 160, 219, 0.2);
+  width: 6px;
+  height: 6px;
+  background: rgba(77, 160, 219, 0.4);
   border-radius: 50%;
-  border: 1px solid rgba(77, 160, 219, 0.1);
-  box-shadow: 
-    0 0 20px rgba(77, 160, 219, 0.2),
-    inset 0 2px 0 rgba(255, 255, 255, 0.3);
+  border: none;
+  box-shadow: none;
   animation: floatUp 15s infinite linear;
   opacity: 0;
+  will-change: transform, opacity;
 }
 
 .floating-bubble:nth-child(1) { left: 5%; animation-delay: 0s; animation-duration: 18s; }
@@ -62,21 +61,18 @@
 
 /* Size variations */
 .floating-bubble:nth-child(odd) {
-  width: 6px;
-  height: 6px;
-  background: rgba(25, 118, 210, 0.15);
+  width: 8px;
+  height: 8px;
 }
 
 .floating-bubble:nth-child(3n) {
-  width: 10px;
-  height: 10px;
-  background: rgba(187, 222, 251, 0.1);
+  width: 9px;
+  height: 9px;
 }
 
 .floating-bubble:nth-child(5n) {
-  width: 4px;
-  height: 4px;
-  background: rgba(77, 160, 219, 0.25);
+  width: 8px;
+  height: 8px;
 }
 
 .gradient-orbs {
@@ -255,15 +251,12 @@
   align-items: center;
   padding: 8px 12px;
   min-width: 50px;
-  background: rgba(77, 160, 219, 0.15);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
+  background: rgba(77, 160, 219, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.08),
-    0 2px 8px rgba(77, 160, 219, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(77, 160, 219, 0.15);
+  box-shadow: 0 4px 16px rgba(77, 160, 219, 0.06);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -331,10 +324,10 @@
   position: relative;
   width: 44px;
   height: 44px;
-  background: rgba(77, 160, 219, 0.15);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(77, 160, 219, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(77, 160, 219, 0.15);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -342,10 +335,7 @@
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: #1976d2;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    0 4px 16px rgba(77, 160, 219, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 16px rgba(77, 160, 219, 0.06);
   overflow: hidden;
 }
 
@@ -539,17 +529,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(77, 160, 219, 0.15);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(77, 160, 219, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 14px 18px;
   border-radius: 25px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(77, 160, 219, 0.15);
   min-width: 220px;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    0 4px 16px rgba(77, 160, 219, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 16px rgba(77, 160, 219, 0.06);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -601,10 +588,10 @@
 }
 
 .location-dropdown-new {
-  background: rgba(77, 160, 219, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(77, 160, 219, 0.2);
+  background: rgba(77, 160, 219, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(77, 160, 219, 0.12);
   border-radius: 12px;
   color: #1976d2;
   font-weight: 600;
@@ -617,7 +604,7 @@
   transition: all 0.3s ease;
   font-family: 'Montserrat', sans-serif;
   letter-spacing: 0.3px;
-  box-shadow: 0 2px 8px rgba(77, 160, 219, 0.1);
+  box-shadow: 0 2px 8px rgba(77, 160, 219, 0.04);
 }
 
 .location-dropdown-new:hover {
@@ -653,8 +640,8 @@
 }
 
 .location-btn-new {
-  background: rgba(25, 118, 210, 0.1);
-  border: 1px solid rgba(25, 118, 210, 0.2);
+  background: rgba(77, 160, 219, 0.06);
+  border: 1px solid rgba(77, 160, 219, 0.12);
   border-radius: 50%;
   width: 36px;
   height: 36px;
@@ -665,12 +652,9 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
   color: #1976d2;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.1),
-    0 2px 8px rgba(25, 118, 210, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(77, 160, 219, 0.04);
 }
 
 .location-btn-new:hover {
@@ -1805,17 +1789,17 @@
 /* ANIMATIONS */
 @keyframes floatUp {
   0% {
-    transform: translateY(0px) translateX(0px);
+    transform: translateY(0px);
     opacity: 0;
   }
   10% {
-    opacity: 1;
+    opacity: 0.6;
   }
   90% {
-    opacity: 1;
+    opacity: 0.6;
   }
   100% {
-    transform: translateY(-100vh) translateX(30px);
+    transform: translateY(-100vh);
     opacity: 0;
   }
 }
