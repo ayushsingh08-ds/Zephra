@@ -63,15 +63,6 @@ const Navigation: React.FC = () => {
               About
             </Link>
           </li>
-          <li>
-            <Link 
-              to="/map" 
-              className={location.pathname === '/map' ? 'active' : ''}
-              onClick={closeMenu}
-            >
-              Map
-            </Link>
-          </li>
         </ul>
 
         {/* Mobile Menu Button */}
@@ -114,15 +105,6 @@ const Navigation: React.FC = () => {
               onClick={closeMenu}
             >
               About
-            </Link>
-          </li>
-          <li>
-            <Link 
-              to="/map" 
-              className={location.pathname === '/map' ? 'active' : ''}
-              onClick={closeMenu}
-            >
-              Map
             </Link>
           </li>
         </ul>
