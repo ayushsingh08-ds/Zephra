@@ -23,16 +23,28 @@ app = FastAPI(
 )
 
 # Add CORS middleware
+cors_origins = os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify actual frontend URLs
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# NASA API Configuration with Real Token
-NASA_TOKEN = "eyJ0eXAiOiJKV1QiLCJvcmlnaW4iOiJFYXJ0aGRhdGEgTG9naW4iLCJzaWciOiJlZGxqd3RwdWJrZXlfb3BzIiwiYWxnIjoiUlMyNTYifQ.eyJ0eXBlIjoiVXNlciIsInVpZCI6ImVzd2FyYXJqaSIsImV4cCI6MTc2NDU5ODg2MSwiaWF0IjoxNzU5NDE0ODYxLCJpc3MiOiJodHRwczovL3Vycy5lYXJ0aGRhdGEubmFzYS5nb3YiLCJpZGVudGl0eV9wcm92aWRlciI6ImVkbF9vcHMiLCJhY3IiOiJlZGwiLCJhc3N1cmFuY2VfbGV2ZWwiOjN9.69czFMi8XS0PdHCYbUiZCXL7sVnfcP5ZCAxCSAWmQIhGB7hqleKxsSSgNBcdmj2TGOGxm5Iesz8QoblT7WTuoJ4NFbqWEJ801CEhMd8xmmJMYwvM2Z19EacrAEf_XZHEG_94cwkXwu7DK2VpF_qyAM6OuVe0O0T2QyyAGcyECYTh20Erjr_P4bzCX9x_rCmlW_ZelrMlkAFiRpCwxIjqsiuYNSKRaH7l8DTDpDIKoYQGiBfQ1_f7a1HhrOCncjmECD1N_8ggXU0mwQ56_IdfiTQJ3QSKgnZDZsRYtLTiSkN2B4L0yjBm5GvDRzEulkvcKH2x9cneqFbYutglQYzUVw"
+# Load environment variables
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    print("⚠️ Warning: python-dotenv not installed. Using environment variables only.")
+
+# NASA API Configuration with Real Token from environment
+NASA_TOKEN = os.getenv('NASA_TOKEN')
+if not NASA_TOKEN:
+    print("❌ ERROR: NASA_TOKEN not found in environment variables")
+    print("   Please set NASA_TOKEN in your .env file or environment")
+    raise ValueError("NASA_TOKEN environment variable is required")
 
 # NASA API Endpoints
 NASA_EARTHDATA_BASE = "https://cmr.earthdata.nasa.gov/search"
@@ -43,7 +55,7 @@ NASA_MERRA2_BASE = "https://goldsmr4.gesdisc.eosdis.nasa.gov/data/MERRA2"
 
 # WAQI Fallback
 WAQI_BASE_URL = "https://api.waqi.info/feed"
-WAQI_API_KEY = "demo"
+WAQI_API_KEY = os.getenv('WAQI_API_KEY', 'demo')
 
 # Available locations for air quality monitoring
 AVAILABLE_LOCATIONS = {
@@ -780,8 +792,8 @@ async def startup_event():
     print("="*60)
     print("🛰️ NASA REAL DATA STATUS:")
     print(f"   Token configured: {'✅' if NASA_TOKEN else '❌'}")
-    print(f"   Username: eswaraji")
-    print(f"   Real NASA data: ✅ AUTHENTICATED ACCESS")
+    print(f"   Username: {os.getenv('NASA_USERNAME', 'Not specified')}")
+    print(f"   Real NASA data: {'✅ AUTHENTICATED ACCESS' if NASA_TOKEN else '❌ NO TOKEN'}")
     print(f"   TEMPO API: {NASA_TEMPO_BASE}")
     print(f"   MERRA-2 API: {NASA_MERRA2_BASE}")
     print(f"   MODIS API: {NASA_MODIS_BASE}")
@@ -791,10 +803,16 @@ async def startup_event():
     print("="*60)
 
 if __name__ == "__main__":
+    # Get configuration from environment
+    host = os.getenv('HOST', 'localhost')  # Changed from 0.0.0.0 to localhost
+    port = int(os.getenv('PORT', '5000'))
+    debug = os.getenv('DEBUG', 'true').lower() == 'true'
+    log_level = os.getenv('LOG_LEVEL', 'info').lower()
+    
     uvicorn.run(
         "zephra_api:app",
-        host="0.0.0.0",
-        port=5000,
-        reload=True,
-        log_level="info"
+        host=host,
+        port=port,
+        reload=debug,
+        log_level=log_level
     )

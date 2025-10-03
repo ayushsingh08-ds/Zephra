@@ -58,7 +58,7 @@ interface HealthProfile {
 }
 
 const Home: React.FC = () => {
-  const [currentLocation, setCurrentLocation] = useState('New York, NY');
+  const [currentLocation, setCurrentLocation] = useState('New York');
   const [airQualityData, setAirQualityData] = useState<AirQualityData | null>(null);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [alerts, setAlerts] = useState<AlertData[]>([]);
@@ -106,13 +106,96 @@ const Home: React.FC = () => {
     additionalConditions: ''
   });
 
-  // Simulated API endpoints - Replace with real NASA API calls
+  // Real API endpoints - Now connected to FastAPI backend
   const fetchAirQualityData = async () => {
+    console.log('🚀 Starting fetchAirQualityData for location:', currentLocation);
+    
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      setLoading(true);
       
-      // Mock data - replace with real NASA API
+      // Determine the location parameter
+      let locationParam = '';
+      if (userLocation) {
+        locationParam = `?lat=${userLocation.latitude}&lon=${userLocation.longitude}&name=${encodeURIComponent(userLocation.city)}`;
+      } else {
+        // Use predefined location - exact match with backend AVAILABLE_LOCATIONS
+        locationParam = `?location=${encodeURIComponent(currentLocation)}`;
+      }
+      
+      console.log('📡 Making API request to:', `/api/dashboard${locationParam}`);
+      
+      // Fetch real data from FastAPI backend
+      const response = await fetch(`/api/dashboard${locationParam}`);
+      
+      console.log('📊 API Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('✅ API Response data:', data);
+      
+      if (data.success && data.air_quality && data.air_quality.length > 0) {
+        // Get the latest air quality data
+        const latestData = data.air_quality[data.air_quality.length - 1];
+        
+        const realData: AirQualityData = {
+          aqi: latestData.aqi,
+          pm25: latestData.pm25,
+          pm10: latestData.pm10,
+          o3: latestData.o3,
+          no2: latestData.no2,
+          so2: latestData.so2,
+          co: latestData.co,
+          location: data.location_info?.name || currentLocation,
+          timestamp: latestData.timestamp,
+          status: getAQIStatus(latestData.aqi)
+        };
+        
+        console.log('📍 Setting air quality data:', realData);
+        setAirQualityData(realData);
+        
+        // Also update weather data if available
+        if (data.weather && data.weather.length > 0) {
+          const latestWeather = data.weather[data.weather.length - 1];
+          const realWeatherData: WeatherData = {
+            temperature: latestWeather.temperature,
+            humidity: latestWeather.humidity,
+            windSpeed: latestWeather.windSpeed,
+            pressure: latestWeather.pressure,
+            visibility: latestWeather.visibility
+          };
+          console.log('🌤️ Setting weather data:', realWeatherData);
+          setWeatherData(realWeatherData);
+        }
+        
+        // Check alerts with new data
+        checkAlerts(realData);
+        
+        // Handle air quality update through Service Manager
+        if (serviceManagerRef.current) {
+          await serviceManagerRef.current.handleAirQualityUpdate(realData);
+        }
+        
+        // Track analytics event
+        if (serviceManagerRef.current) {
+          await serviceManagerRef.current.trackAnalyticsEvent({
+            type: 'air_quality_fetch',
+            location: realData.location,
+            aqi: realData.aqi,
+            timestamp: Date.now()
+          });
+        }
+        
+        console.log('✅ Real data fetched and processed successfully');
+      } else {
+        throw new Error('Invalid data format received from API');
+      }
+    } catch (error) {
+      console.error('❌ Error fetching real air quality data:', error);
+      
+      // Fallback to mock data only if API fails
       const mockData: AirQualityData = {
         aqi: Math.floor(Math.random() * 200) + 20,
         pm25: Math.floor(Math.random() * 50) + 5,
@@ -126,47 +209,16 @@ const Home: React.FC = () => {
         status: getAQIStatus(Math.floor(Math.random() * 200) + 20)
       };
       
+      console.log('⚠️ Using fallback mock data:', mockData);
       setAirQualityData(mockData);
-      
-      // Check alerts with new data
       checkAlerts(mockData);
-      
-      // Handle air quality update through Service Manager
-      if (serviceManagerRef.current) {
-        await serviceManagerRef.current.handleAirQualityUpdate(mockData);
-      }
-      
-      // Track analytics event
-      if (serviceManagerRef.current) {
-        await serviceManagerRef.current.trackAnalyticsEvent({
-          type: 'air_quality_fetch',
-          location: currentLocation,
-          aqi: mockData.aqi,
-          timestamp: Date.now()
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching air quality data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchWeatherData = async () => {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const mockWeather: WeatherData = {
-        temperature: Math.floor(Math.random() * 30) + 10,
-        humidity: Math.floor(Math.random() * 60) + 30,
-        windSpeed: Math.floor(Math.random() * 20) + 2,
-        pressure: Math.floor(Math.random() * 100) + 1000,
-        visibility: Math.floor(Math.random() * 15) + 5
-      };
-      
-      setWeatherData(mockWeather);
-    } catch (error) {
-      console.error('Error fetching weather data:', error);
-    }
-  };
+  // Weather data is now fetched along with air quality data in fetchAirQualityData
+  // No separate weather API call needed
 
   const fetchAlerts = async () => {
     try {
@@ -500,11 +552,8 @@ const Home: React.FC = () => {
 
   const refreshData = async () => {
     setLoading(true);
-    await Promise.all([
-      fetchAirQualityData(),
-      fetchWeatherData(),
-      fetchAlerts()
-    ]);
+    await fetchAirQualityData(); // This now fetches both air quality and weather data
+    await fetchAlerts();
     setLastUpdated(new Date());
     setLoading(false);
   };
@@ -675,14 +724,16 @@ const Home: React.FC = () => {
                 {userLocation && (
                   <option value={userLocation.city}>📍 {userLocation.city} (Your Location)</option>
                 )}
-                <option value="New York, NY">New York, NY</option>
-                <option value="Los Angeles, CA">Los Angeles, CA</option>
-                <option value="Chicago, IL">Chicago, IL</option>
-                <option value="Houston, TX">Houston, TX</option>
-                <option value="Phoenix, AZ">Phoenix, AZ</option>
-                <option value="Philadelphia, PA">Philadelphia, PA</option>
-                <option value="San Antonio, TX">San Antonio, TX</option>
-                <option value="San Diego, CA">San Diego, CA</option>
+                <option value="New York">New York</option>
+                <option value="Los Angeles">Los Angeles</option>
+                <option value="London">London</option>
+                <option value="Tokyo">Tokyo</option>
+                <option value="Sydney">Sydney</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Berlin">Berlin</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Paris">Paris</option>
+                <option value="Singapore">Singapore</option>
               </select>
               <button 
                 onClick={getCurrentLocation}

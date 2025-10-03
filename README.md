@@ -23,8 +23,23 @@ cd Zephra
 ### 2. Backend Setup
 ```bash
 cd backend
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Create environment file
+cp .env.example .env
+
+# Edit .env with your NASA credentials
+# NASA_TOKEN=your_nasa_jwt_token_here
+# NASA_USERNAME=your_nasa_username
+# WAQI_API_KEY=your_waqi_key (optional)
+
+# Start the FastAPI server (Windows)
 python zephra_api.py
+
+# Or use the batch file (Windows)
+start_backend.bat
 ```
 Backend runs on: `http://localhost:5000`
 
@@ -33,8 +48,42 @@ Backend runs on: `http://localhost:5000`
 cd frontend
 npm install
 npm run dev
+
+# Or use the batch file (Windows)
+start_frontend.bat
 ```
-Frontend runs on: `http://localhost:5173`
+Frontend runs on: `http://localhost:5174`
+
+## 🔐 Environment Configuration
+
+The application requires proper environment variables for security and functionality.
+
+### Required Environment Variables
+Create a `.env` file in the backend directory with:
+
+```env
+# NASA API Configuration (Required for real data)
+NASA_TOKEN=your_nasa_jwt_token_here
+NASA_USERNAME=your_nasa_username
+
+# WAQI API (Optional - used as fallback)
+WAQI_API_KEY=your_waqi_api_key
+
+# Server Configuration
+DEBUG=true
+LOG_LEVEL=INFO
+HOST=0.0.0.0
+PORT=5000
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+```
+
+### Getting NASA Token
+1. Register at [NASA Earthdata Login](https://urs.earthdata.nasa.gov/users/new)
+2. Apply for data access permissions
+3. Generate JWT token for API access
+4. Add token to your `.env` file
+
+**Security Note**: Never commit `.env` files to version control!
 
 ## Tech Stack:
 
