@@ -49,6 +49,18 @@ pids/
 # Temporary folders
 tmp/
 temp/
+*.tmp
+*.backup
+
+# Debug files
+debug.html
+test.html
+*_debug.*
+*_test.*
+
+# Migration artifacts
+*_MIGRATION_*.md
+install_requirements.bat
 
 # Virtual environments
 env/
