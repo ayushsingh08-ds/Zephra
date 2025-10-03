@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './Navigation.css';
-import logo from '../assets/logo.png'
 
 const Navigation: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -30,7 +29,7 @@ const Navigation: React.FC = () => {
       <div className="nav-header">
         <div className="nav-brand">
           <Link to="/" onClick={closeMenu}>
-            <span className="brand-icon"><img src={logo} alt="Zephra Logo" /></span>
+            <span className="brand-icon"><img src="/logo.png" alt="Zephra Logo" /></span>
             <span className="brand-text">Zephra</span>
           </Link>
         </div>

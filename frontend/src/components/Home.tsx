@@ -68,7 +68,6 @@ const Home: React.FC = () => {
   // Service Manager state
   const [serviceStatus, setServiceStatus] = useState<ServiceStatus | null>(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [syncQueueSize, setSyncQueueSize] = useState(0);
   const serviceManagerRef = useRef<ServiceManager | null>(null);
   
   // Geolocation state
@@ -521,16 +520,8 @@ const Home: React.FC = () => {
             console.log('Service Worker update detected');
             setUpdateAvailable(true);
           },
-          onBackgroundSyncComplete: (queueSize) => {
-            setSyncQueueSize(queueSize);
-            console.log(`Background sync queue size: ${queueSize}`);
-          },
           onNotificationPermissionChange: (permission) => {
             console.log(`Notification permission: ${permission}`);
-          },
-          onAppUpdateAvailable: (version) => {
-            console.log(`App update available: ${version}`);
-            setUpdateAvailable(true);
           },
           onServiceError: (service, error) => {
             console.error(`${service} error:`, error);
@@ -601,18 +592,31 @@ const Home: React.FC = () => {
       {/* Global Animated Background */}
       <div className="global-background">
         <div className="floating-particles">
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
         </div>
         <div className="gradient-orbs">
           <div className="orb orb-1"></div>
@@ -625,7 +629,7 @@ const Home: React.FC = () => {
 
       {/* Enhanced Header Section */}
       <section className="home-header">
-        <div className="header-content">
+        <div className="header-content-transparent">
           <div className="profile-section">
             <div className="user-profile">
               <div className="user-avatar">
@@ -660,8 +664,8 @@ const Home: React.FC = () => {
           </div>
           
           <div className="header-controls">
-            <div className="location-selector">
-              <div className="location-icon">
+            <div className="location-selector-new">
+              <div className="location-icon-new">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                     <circle cx="12" cy="10" r="3"/>
@@ -670,7 +674,7 @@ const Home: React.FC = () => {
               <select 
                 value={currentLocation} 
                 onChange={(e) => setCurrentLocation(e.target.value)}
-                className="location-dropdown"
+                className="location-dropdown-new"
               >
                 {userLocation && (
                   <option value={userLocation.city}>📍 {userLocation.city} (Your Location)</option>
@@ -686,7 +690,7 @@ const Home: React.FC = () => {
               </select>
               <button 
                 onClick={getCurrentLocation}
-                className="location-btn"
+                className="location-btn-new"
                 title="Get my location"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
@@ -728,9 +732,6 @@ const Home: React.FC = () => {
               )}
               {updateAvailable && (
                 <span className="update-badge">Update Available</span>
-              )}
-              {syncQueueSize > 0 && (
-                <span className="sync-badge">{syncQueueSize} pending</span>
               )}
             </span>
           </div>
@@ -1069,7 +1070,7 @@ const Home: React.FC = () => {
         </div>
         
         <div className="actions-grid">
-          <button className="action-card primary">
+          <button className="action-card primary" onClick={() => window.location.href = '/map'}>
             <div className="action-content">
               <div className="action-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1077,7 +1078,7 @@ const Home: React.FC = () => {
                   <circle cx="12" cy="10" r="3"/>
                 </svg>
               </div>
-              <div className="action-text">
+              <div className="action-text action-text-left">
                 <span className="action-title">View Map</span>
                 <span className="action-subtitle">Interactive air quality map</span>
               </div>
@@ -1097,7 +1098,7 @@ const Home: React.FC = () => {
                   <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                 </svg>
               </div>
-              <div className="action-text">
+              <div className="action-text action-text-left">
                 <span className="action-title">Set Alerts</span>
                 <span className="action-subtitle">Custom notifications</span>
               </div>
@@ -1109,7 +1110,7 @@ const Home: React.FC = () => {
             </div>
           </button>
           
-          <button className="action-card">
+          <button className="action-card" onClick={() => window.location.href = '/dashboard'}>
             <div className="action-content">
               <div className="action-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1120,7 +1121,7 @@ const Home: React.FC = () => {
                   <path d="M12 7v10"/>
                 </svg>
               </div>
-              <div className="action-text">
+              <div className="action-text action-text-left">
                 <span className="action-title">Analytics</span>
                 <span className="action-subtitle">Detailed insights</span>
               </div>
@@ -1139,7 +1140,7 @@ const Home: React.FC = () => {
                   <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
                 </svg>
               </div>
-              <div className="action-text">
+              <div className="action-text action-text-left">
                 <span className="action-title">API Access</span>
                 <span className="action-subtitle">Developer tools</span>
               </div>
@@ -1154,12 +1155,12 @@ const Home: React.FC = () => {
           {/* Health Assessment - Two Width Action Card */}
           <button className="action-card health-assessment-wide" onClick={() => setShowHealthModal(true)}>
             <div className="action-content">
-              <div className="action-icon">
+              <div className="action-icon health-icon-fixed">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7z"/>
                 </svg>
               </div>
-              <div className="action-text">
+              <div className="action-text action-text-left">
                 <span className="action-title">Do you have any health issues related to air quality?</span>
                 <span className="action-subtitle">
                   {healthProfile ? 

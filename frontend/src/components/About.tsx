@@ -1,6 +1,5 @@
 import React from 'react';
 import './About.css';
-import logo from '../assets/logo.png'
 
 const About: React.FC = () => {
   return (
@@ -8,18 +7,26 @@ const About: React.FC = () => {
       {/* Global Animated Background for Entire Page */}
       <div className="global-background">
         <div className="floating-particles">
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
-          <div className="particle"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
+          <div className="floating-bubble"></div>
         </div>
         <div className="gradient-orbs">
           <div className="orb orb-1"></div>
@@ -44,7 +51,7 @@ const About: React.FC = () => {
             NASA-Powered Technology
           </div>
           <div className="logo-intro">
-            <img src={logo} alt="Zephra Logo" className='logo-image' />
+            <img src="/logo.png" alt="Zephra Logo" className='logo-image' />
           <h1 className="hero-title">
             <span className="title-word" data-text="Zephra">Zephra</span>
           </h1>

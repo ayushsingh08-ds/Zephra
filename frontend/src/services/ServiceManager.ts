@@ -1,8 +1,6 @@
 // Central Service Manager - Orchestrates all advanced services
 import { ServiceWorkerManager } from './ServiceWorkerManager';
-import { BackgroundSyncManager } from './BackgroundSyncManager';
 import { PushNotificationHandler } from './PushNotificationHandler';
-import { AppUpdateManager, type AppVersion } from './AppUpdateManager';
 
 export interface ServiceStatus {
   serviceWorker: {
@@ -10,64 +8,31 @@ export interface ServiceStatus {
     updateAvailable: boolean;
     isOnline: boolean;
   };
-  backgroundSync: {
-    totalItems: number;
-    isOnline: boolean;
-    syncInProgress: boolean;
-  };
   pushNotifications: {
     isSupported: boolean;
     permission: NotificationPermission;
     isSubscribed: boolean;
   };
-  appUpdate: {
-    updateAvailable: boolean;
-    updateInProgress: boolean;
-    currentVersion: string;
-  };
 }
 
 export interface ServiceManagerCallbacks {
   onServiceWorkerUpdate?: () => void;
-  onBackgroundSyncComplete?: (queueSize: number) => void;
   onNotificationPermissionChange?: (permission: NotificationPermission) => void;
-  onAppUpdateAvailable?: (version: string) => void;
   onServiceError?: (service: string, error: Error) => void;
 }
 
 export class ServiceManager {
   private serviceWorker: ServiceWorkerManager;
-  private backgroundSync: BackgroundSyncManager;
   private pushNotifications: PushNotificationHandler;
-  private appUpdate: AppUpdateManager;
   private initialized: boolean = false;
   private callbacks: ServiceManagerCallbacks = {};
 
   // Configuration
   private readonly VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE'; // Replace with actual key
-  private readonly CURRENT_APP_VERSION: AppVersion = {
-    version: '1.0.0',
-    buildNumber: '1001',
-    releaseDate: '2025-10-02',
-    features: [
-      'Real-time air quality monitoring',
-      'PWA support with offline functionality',
-      'Push notifications for air quality alerts',
-      'Background data synchronization',
-      'Automatic app updates'
-    ],
-    bugFixes: [
-      'Fixed mobile navigation expansion',
-      'Improved animation smoothness',
-      'Enhanced offline mode stability'
-    ]
-  };
 
   constructor() {
     this.serviceWorker = new ServiceWorkerManager();
-    this.backgroundSync = new BackgroundSyncManager();
     this.pushNotifications = new PushNotificationHandler(this.VAPID_PUBLIC_KEY);
-    this.appUpdate = new AppUpdateManager(this.CURRENT_APP_VERSION);
   }
 
   /**
@@ -121,20 +86,6 @@ export class ServiceManager {
       }
     });
 
-    // Background Sync callbacks
-    this.backgroundSync.setCallbacks({
-      onSyncComplete: (item) => {
-        console.log(`Background sync completed: ${item.type}`);
-      },
-      onSyncError: (item, error) => {
-        console.error(`Background sync failed for ${item.type}:`, error);
-        this.callbacks.onServiceError?.('BackgroundSync', error);
-      },
-      onQueueUpdate: (queueSize) => {
-        this.callbacks.onBackgroundSyncComplete?.(queueSize);
-      }
-    });
-
     // Push Notifications callbacks
     this.pushNotifications.setCallbacks({
       onPermissionGranted: () => {
@@ -153,23 +104,6 @@ export class ServiceManager {
       },
       onError: (error) => {
         this.callbacks.onServiceError?.('PushNotifications', error);
-      }
-    });
-
-    // App Update callbacks
-    this.appUpdate.setCallbacks({
-      onUpdateAvailable: (updateInfo) => {
-        console.log(`App update available: ${updateInfo.version.version}`);
-        this.callbacks.onAppUpdateAvailable?.(updateInfo.version.version);
-      },
-      onUpdateComplete: (version) => {
-        console.log(`App updated to version: ${version.version}`);
-      },
-      onUpdateError: (error) => {
-        this.callbacks.onServiceError?.('AppUpdate', error);
-      },
-      onVersionChange: (oldVersion, newVersion) => {
-        console.log(`Version changed: ${oldVersion.version} → ${newVersion.version}`);
       }
     });
   }
@@ -193,9 +127,7 @@ export class ServiceManager {
   async performHealthCheck(): Promise<ServiceStatus> {
     const status: ServiceStatus = {
       serviceWorker: this.serviceWorker.getRegistrationStatus(),
-      backgroundSync: this.backgroundSync.getQueueStatus(),
-      pushNotifications: this.pushNotifications.getSubscriptionStatus(),
-      appUpdate: this.appUpdate.getUpdateStatus()
+      pushNotifications: this.pushNotifications.getSubscriptionStatus()
     };
 
     console.log('Service Manager Health Check:', status);
@@ -206,15 +138,6 @@ export class ServiceManager {
    * Handle air quality data updates
    */
   async handleAirQualityUpdate(data: any): Promise<void> {
-    // Queue for background sync if offline
-    if (!navigator.onLine) {
-      await this.backgroundSync.addToQueue(
-        'AIR_QUALITY_REQUEST',
-        data,
-        'HIGH'
-      );
-    }
-
     // Send push notification if AQI is concerning
     if (data.aqi > 100) {
       const notification = this.pushNotifications.createAirQualityNotification(
@@ -232,61 +155,19 @@ export class ServiceManager {
   }
 
   /**
-   * Handle user preference updates
-   */
-  async handleUserPreferenceUpdate(preferences: any): Promise<void> {
-    if (!navigator.onLine) {
-      await this.backgroundSync.addToQueue(
-        'USER_PREFERENCE',
-        preferences,
-        'MEDIUM'
-      );
-      return;
-    }
-
-    // Sync immediately if online
-    try {
-      const response = await fetch('/api/user/preferences', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(preferences)
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-    } catch (error) {
-      // Queue for later if request fails
-      await this.backgroundSync.addToQueue(
-        'USER_PREFERENCE',
-        preferences,
-        'MEDIUM'
-      );
-    }
-  }
-
-  /**
    * Handle location updates
    */
   async handleLocationUpdate(location: any): Promise<void> {
-    await this.backgroundSync.addToQueue(
-      'LOCATION_UPDATE',
-      location,
-      'MEDIUM',
-      { expiresIn: 3600000 } // Expire in 1 hour
-    );
+    console.log('Location updated:', location);
+    // Location handling logic would go here
   }
 
   /**
    * Handle analytics events
    */
   async trackAnalyticsEvent(event: any): Promise<void> {
-    await this.backgroundSync.addToQueue(
-      'ANALYTICS_EVENT',
-      event,
-      'LOW',
-      { expiresIn: 86400000 } // Expire in 24 hours
-    );
+    console.log('Analytics event:', event);
+    // Analytics tracking logic would go here
   }
 
   /**
@@ -319,42 +200,6 @@ export class ServiceManager {
   }
 
   /**
-   * Force app update check
-   */
-  async checkForAppUpdates(): Promise<boolean> {
-    try {
-      const updateInfo = await this.appUpdate.forceUpdateCheck();
-      return !!updateInfo?.available;
-    } catch (error) {
-      console.error('Update check failed:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Install available app update
-   */
-  async installAppUpdate(): Promise<boolean> {
-    try {
-      return await this.appUpdate.installUpdate();
-    } catch (error) {
-      console.error('Update installation failed:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Force background sync
-   */
-  async forceSyncAll(): Promise<void> {
-    try {
-      await this.backgroundSync.forcSync();
-    } catch (error) {
-      console.error('Force sync failed:', error);
-    }
-  }
-
-  /**
    * Clear all caches
    */
   async clearAllCaches(): Promise<void> {
@@ -371,25 +216,20 @@ export class ServiceManager {
    */
   async getServiceStatistics(): Promise<{
     cacheStats: any;
-    syncQueueSize: number;
     notificationStatus: any;
-    appVersion: string;
     uptime: number;
   }> {
     const startTime = performance.now();
     
     try {
-      const [cacheStats, syncStatus, notificationStatus] = await Promise.all([
+      const [cacheStats, notificationStatus] = await Promise.all([
         this.serviceWorker.getCacheStats(),
-        this.backgroundSync.getQueueStatus(),
         Promise.resolve(this.pushNotifications.getSubscriptionStatus())
       ]);
 
       return {
         cacheStats,
-        syncQueueSize: syncStatus.totalItems,
         notificationStatus,
-        appVersion: this.CURRENT_APP_VERSION.version,
         uptime: performance.now() - startTime
       };
     } catch (error) {
@@ -417,15 +257,11 @@ export class ServiceManager {
    */
   async testAllServices(): Promise<{
     serviceWorker: boolean;
-    backgroundSync: boolean;
     pushNotifications: boolean;
-    appUpdate: boolean;
   }> {
     const results = {
       serviceWorker: false,
-      backgroundSync: false,
-      pushNotifications: false,
-      appUpdate: false
+      pushNotifications: false
     };
 
     try {
@@ -433,19 +269,11 @@ export class ServiceManager {
       const swStatus = this.serviceWorker.getRegistrationStatus();
       results.serviceWorker = swStatus.isRegistered;
 
-      // Test Background Sync
-      await this.backgroundSync.addToQueue('ANALYTICS_EVENT', { test: true }, 'LOW');
-      results.backgroundSync = true;
-
       // Test Push Notifications
       if (this.pushNotifications.getSubscriptionStatus().isSupported) {
         await this.pushNotifications.testNotification();
         results.pushNotifications = true;
       }
-
-      // Test App Update
-      const updateStatus = this.appUpdate.getUpdateStatus();
-      results.appUpdate = !!updateStatus.currentVersion;
 
     } catch (error) {
       console.error('Service testing failed:', error);
@@ -458,10 +286,6 @@ export class ServiceManager {
    * Cleanup all services
    */
   destroy(): void {
-    if (this.appUpdate) {
-      this.appUpdate.destroy();
-    }
-    
     this.initialized = false;
     console.log('Service Manager destroyed');
   }
