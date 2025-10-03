@@ -612,11 +612,6 @@ const Home: React.FC = () => {
           <div className="floating-bubble"></div>
           <div className="floating-bubble"></div>
           <div className="floating-bubble"></div>
-          <div className="floating-bubble"></div>
-          <div className="floating-bubble"></div>
-          <div className="floating-bubble"></div>
-          <div className="floating-bubble"></div>
-          <div className="floating-bubble"></div>
         </div>
         <div className="gradient-orbs">
           <div className="orb orb-1"></div>
