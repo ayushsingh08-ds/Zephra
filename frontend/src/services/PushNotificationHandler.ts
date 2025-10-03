@@ -389,38 +389,68 @@ export class PushNotificationHandler {
     status: string
   ): NotificationPayload {
     const getAlertLevel = (aqi: number) => {
-      if (aqi <= 50) return { level: 'Good', icon: '✅' };
-      if (aqi <= 100) return { level: 'Moderate', icon: '⚠️' };
-      if (aqi <= 150) return { level: 'Unhealthy for Sensitive', icon: '🔶' };
-      if (aqi <= 200) return { level: 'Unhealthy', icon: '🔴' };
-      if (aqi <= 300) return { level: 'Very Unhealthy', icon: '🚨' };
-      return { level: 'Hazardous', icon: '☢️' };
+      if (aqi <= 50) return { 
+        level: 'Good', 
+        icon: '✅',
+        action: 'Great time to be outdoors!'
+      };
+      if (aqi <= 100) return { 
+        level: 'Moderate', 
+        icon: '⚠️',
+        action: 'Sensitive people should limit outdoor activities'
+      };
+      if (aqi <= 150) return { 
+        level: 'Unhealthy for Sensitive', 
+        icon: '🔶',
+        action: 'Consider moving indoors if you have respiratory issues'
+      };
+      if (aqi <= 200) return { 
+        level: 'Unhealthy', 
+        icon: '🔴',
+        action: 'Avoid prolonged outdoor exposure - move indoors'
+      };
+      if (aqi <= 300) return { 
+        level: 'Very Unhealthy', 
+        icon: '🚨',
+        action: 'Leave this area immediately and seek clean air'
+      };
+      return { 
+        level: 'Hazardous', 
+        icon: '☢️',
+        action: 'Emergency - evacuate this location now!'
+      };
     };
 
     const alert = getAlertLevel(aqi);
 
     return {
-      title: `${alert.icon} Air Quality Alert - ${location}`,
-      body: `AQI: ${aqi} (${alert.level})\nCurrent status: ${status}`,
-      icon: '/icon.png',
-      badge: '/icon.png',
+      title: `${alert.icon} ${alert.level} Air Quality in ${location}`,
+      body: `AQI ${aqi} • ${alert.action}`,
+      icon: '/icon-192x192.png',
+      badge: '/icon-72x72.png',
+      image: aqi > 150 ? '/alert-banner.png' : undefined,
       data: {
         type: 'air_quality_alert',
         aqi,
         location,
         status,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        actionAdvice: alert.action,
+        alertLevel: alert.level
       },
       tag: 'air-quality-alert',
-      requireInteraction: aqi > 100,
+      requireInteraction: aqi > 150,
+      silent: false,
       actions: [
         {
-          action: 'view_details',
-          title: 'View Details'
+          action: 'open_app',
+          title: '📱 Open App',
+          icon: '/icon-32x32.png'
         },
         {
-          action: 'dismiss',
-          title: 'Dismiss'
+          action: 'get_directions',
+          title: '🗺️ Find Clean Air',
+          icon: '/location-icon.png'
         }
       ]
     };

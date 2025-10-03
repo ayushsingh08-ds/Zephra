@@ -66,8 +66,8 @@
 }
 
 .floating-bubble:nth-child(3n) {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
 }
 
 .floating-bubble:nth-child(5n) {
@@ -810,6 +810,7 @@
   animation: card-entrance 1s ease-out;
   position: relative;
   overflow: hidden;
+  max-height: 350px;
 }
 
 .aqi-primary-card::before {
@@ -2839,9 +2840,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 20px;
-  padding: 60px 0;
   color: #1976d2;
+  height: 8px;
 }
 
 /* Smooth Content Animation */
