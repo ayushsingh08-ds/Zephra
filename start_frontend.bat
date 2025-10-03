@@ -1,0 +1,9 @@
+@echo off
+echo Starting Zephra Frontend...
+cd /d "D:\Visual Studio Codes\Projects\Zephra\frontend"
+echo Current directory: %cd%
+echo Installing dependencies if needed...
+call npm install --silent
+echo Starting development server...
+call npm run dev
+pause
