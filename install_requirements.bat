@@ -29,8 +29,8 @@ echo.
 echo ✅ Installation complete!
 echo.
 echo Next steps:
-echo 1. Get your NASA Earthdata credentials
-echo 2. Edit backend/nasa_data_fetcher.py with your credentials
-echo 3. Run: cd backend ^&^& python nasa_data_fetcher.py
+echo 1. Run the FastAPI backend: cd backend ^&^& python zephra_api.py
+echo 2. Run the frontend: cd frontend ^&^& npm install ^&^& npm run dev
+echo 3. Open browser to http://localhost:5173
 echo.
 pause
