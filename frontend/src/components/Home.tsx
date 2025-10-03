@@ -65,6 +65,10 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   
+  // Data source selection state
+  const [dataSource, setDataSource] = useState<'dashboard' | 'nasa-data' | 'openaq-data'>('dashboard');
+  const [apiEndpointUsed, setApiEndpointUsed] = useState<string>('/api/dashboard');
+  
   // Service Manager state
   const [serviceStatus, setServiceStatus] = useState<ServiceStatus | null>(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
@@ -631,7 +635,7 @@ const Home: React.FC = () => {
     // Auto-refresh every 5 minutes
     const interval = setInterval(refreshData, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [currentLocation]);
+  }, [currentLocation, dataSource]); // Added dataSource dependency for real-time API switching
 
   return (
     <div className="home-container">
@@ -769,10 +773,27 @@ const Home: React.FC = () => {
             <span className="time-label">Last updated</span>
             <span className="time-value">{lastUpdated.toLocaleTimeString()}</span>
           </div>
+          
+          <div className="api-selector-container">
+            <div className="source-label-compact">API Endpoint</div>
+            <select 
+              value={dataSource} 
+              onChange={(e) => setDataSource(e.target.value as 'dashboard' | 'nasa-data' | 'openaq-data')}
+              className="source-dropdown-compact"
+            >
+              <option value="dashboard">🌐 /api/dashboard</option>
+              <option value="nasa-data">🛰️ /api/nasa-data</option>
+              <option value="openaq-data">📡 /api/openaq-data</option>
+            </select>
+          </div>
+          
           <div className="data-source">
             <span className="source-badge">
               <div className="live-indicator"></div>
-              NASA Satellite Data
+              {dataSource === 'nasa-data' ? '🛰️ NASA Satellite Data' : 
+               dataSource === 'openaq-data' ? '📡 OpenAQ Ground Stations' : 
+               '🌐 Combined NASA + Ground Data'}
+              <span className="api-endpoint-info"> • {apiEndpointUsed}</span>
               {serviceStatus && (
                 <span className="service-info"> • SW: {serviceStatus.serviceWorker.isRegistered ? '✓' : '✗'}</span>
               )}
