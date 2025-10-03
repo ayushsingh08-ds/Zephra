@@ -119,7 +119,7 @@ const Dashboard: React.FC = () => {
 
   const fetchAvailableLocations = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/locations');
+      const response = await fetch('/api/locations');
       if (response.ok) {
         const locationData = await response.json();
         setLocations(locationData.locations || []);
@@ -134,7 +134,7 @@ const Dashboard: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`http://localhost:5000/api/dashboard?location=${encodeURIComponent(selectedLocation)}`);
+      const response = await fetch(`/api/dashboard?location=${encodeURIComponent(selectedLocation)}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch data: ${response.status}`);
@@ -1139,28 +1139,129 @@ const Dashboard: React.FC = () => {
             {/* Forecast Summary */}
             <div className="chart-container">
               <h3>Forecast Summary</h3>
-              <div className="forecast-summary">
-                {data?.forecast?.map((item, index) => (
-                  <div key={index} className="forecast-item">
-                    <div className="forecast-time">{item.hour}</div>
-                    <div className="forecast-aqi">AQI: {Math.round(item.predicted_aqi)}</div>
-                    <div className="forecast-confidence">{Math.round(item.confidence)}% confident</div>
-                    <div className={`forecast-status ${
-                      item.predicted_aqi <= 50 ? 'good' :
-                      item.predicted_aqi <= 100 ? 'moderate' :
-                      item.predicted_aqi <= 150 ? 'unhealthy-sensitive' :
-                      item.predicted_aqi <= 200 ? 'unhealthy' :
-                      'very-unhealthy'
-                    }`}>
-                      {item.predicted_aqi <= 50 ? 'Good' :
-                       item.predicted_aqi <= 100 ? 'Moderate' :
-                       item.predicted_aqi <= 150 ? 'Unhealthy for Sensitive Groups' :
-                       item.predicted_aqi <= 200 ? 'Unhealthy' :
-                       'Very Unhealthy'}
-                    </div>
-                  </div>
-                )) || []}
-              </div>
+              <Bar
+                data={{
+                  labels: forecastLabels,
+                  datasets: [
+                    {
+                      label: 'Predicted AQI',
+                      data: data?.forecast?.map(item => item.predicted_aqi) || [],
+                      backgroundColor: data?.forecast?.map(item => {
+                        const aqi = item.predicted_aqi;
+                        if (aqi <= 50) return 'rgba(76, 175, 80, 0.8)'; // Good - Green
+                        if (aqi <= 100) return 'rgba(255, 235, 59, 0.8)'; // Moderate - Yellow
+                        if (aqi <= 150) return 'rgba(255, 152, 0, 0.8)'; // Unhealthy for Sensitive - Orange
+                        if (aqi <= 200) return 'rgba(244, 67, 54, 0.8)'; // Unhealthy - Red
+                        return 'rgba(156, 39, 176, 0.8)'; // Very Unhealthy - Purple
+                      }) || [],
+                      borderColor: data?.forecast?.map(item => {
+                        const aqi = item.predicted_aqi;
+                        if (aqi <= 50) return 'rgba(76, 175, 80, 1)';
+                        if (aqi <= 100) return 'rgba(255, 235, 59, 1)';
+                        if (aqi <= 150) return 'rgba(255, 152, 0, 1)';
+                        if (aqi <= 200) return 'rgba(244, 67, 54, 1)';
+                        return 'rgba(156, 39, 176, 1)';
+                      }) || [],
+                      borderWidth: 2,
+                      borderRadius: 4,
+                      borderSkipped: false,
+                    },
+                    {
+                      label: 'Confidence %',
+                      data: data?.forecast?.map(item => item.confidence) || [],
+                      backgroundColor: 'rgba(158, 158, 158, 0.3)',
+                      borderColor: 'rgba(158, 158, 158, 0.8)',
+                      borderWidth: 1,
+                      borderRadius: 2,
+                      yAxisID: 'y1',
+                    }
+                  ]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'top' as const,
+                      labels: {
+                        color: '#ffffff',
+                        font: { size: 12 },
+                        usePointStyle: true,
+                        pointStyle: 'rect'
+                      }
+                    },
+                    tooltip: {
+                      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                      titleColor: '#ffffff',
+                      bodyColor: '#ffffff',
+                      borderColor: '#4fc3f7',
+                      borderWidth: 1,
+                      callbacks: {
+                        afterBody: function(context) {
+                          if (context[0].datasetIndex === 0) {
+                            const aqi = context[0].parsed.y;
+                            let status = '';
+                            if (aqi <= 50) status = 'Good';
+                            else if (aqi <= 100) status = 'Moderate';
+                            else if (aqi <= 150) status = 'Unhealthy for Sensitive Groups';
+                            else if (aqi <= 200) status = 'Unhealthy';
+                            else status = 'Very Unhealthy';
+                            return [`Air Quality: ${status}`];
+                          }
+                          return [];
+                        }
+                      }
+                    }
+                  },
+                  scales: {
+                    x: {
+                      ticks: { color: '#ffffff', font: { size: 11 } },
+                      grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    y: {
+                      type: 'linear' as const,
+                      display: true,
+                      position: 'left' as const,
+                      title: {
+                        display: true,
+                        text: 'AQI Value',
+                        color: '#ffffff',
+                        font: { size: 12 }
+                      },
+                      ticks: { 
+                        color: '#ffffff',
+                        font: { size: 11 },
+                        stepSize: 25
+                      },
+                      grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                      min: 0,
+                      max: 300
+                    },
+                    y1: {
+                      type: 'linear' as const,
+                      display: true,
+                      position: 'right' as const,
+                      title: {
+                        display: true,
+                        text: 'Confidence %',
+                        color: '#ffffff',
+                        font: { size: 12 }
+                      },
+                      ticks: { 
+                        color: '#ffffff',
+                        font: { size: 11 }
+                      },
+                      grid: { drawOnChartArea: false },
+                      min: 0,
+                      max: 100
+                    }
+                  },
+                  interaction: {
+                    mode: 'index' as const,
+                    intersect: false,
+                  }
+                } as ChartOptions<'bar'>}
+              />
             </div>
           </div>
         )}
