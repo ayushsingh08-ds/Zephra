@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zephra API Endpoint Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .endpoint-selector {
+            margin: 20px 0;
+        }
+
+        select,
+        button {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .results {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            border-left: 4px solid #007bff;
+        }
+
+        .error {
+            border-left-color: #dc3545;
+            background-color: #f8d7da;
+        }
+
+        .success {
+            border-left-color: #28a745;
+            background-color: #d4edda;
+        }
+
+        .json-output {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .data-age {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .real-time {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .near-real-time {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        .historical {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1976d2;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🚀 Zephra API Endpoint Real-Time Data Tester</h1>
+
+    <div class="test-section">
+        <h2>📡 API Endpoint Selection</h2>
+        <div class="endpoint-selector">
+            <label for="endpoint">Select API Endpoint:</label>
+            <select id="endpoint">
+                <option value="/api/dashboard">🌐 /api/dashboard (Combined Data)</option>
+                <option value="/api/nasa-data">🛰️ /api/nasa-data (NASA Satellites)</option>
+                <option value="/api/openaq-data">📡 /api/openaq-data (OpenAQ Ground)</option>
+                <option value="/api/data/air-quality?source=nasa">🌬️ /api/data/air-quality?source=nasa</option>
+                <option value="/api/data/air-quality?source=openaq">🌬️ /api/data/air-quality?source=openaq</option>
+                <option value="/api/data/pm25?source=openaq">🔬 /api/data/pm25?source=openaq</option>
+                <option value="/api/data/temperature?source=openaq">🌡️ /api/data/temperature?source=openaq</option>
+                <option value="/api/data/wind?source=openaq">💨 /api/data/wind?source=openaq</option>
+            </select>
+
+            <label for="location">Location:</label>
+            <select id="location">
+                <option value="New York">New York</option>
+                <option value="Toronto">Toronto</option>
+                <option value="London">London</option>
+                <option value="Tokyo">Tokyo</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Sydney">Sydney</option>
+            </select>
+
+            <button onclick="testEndpoint()">🧪 Test Endpoint</button>
+            <button onclick="testAllEndpoints()">🚀 Test All Endpoints</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Real-Time Data Validation Results</h2>
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="responseTime">--</div>
+                <div class="stat-label">Response Time (ms)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="dataAge">--</div>
+                <div class="stat-label">Data Age (minutes)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="dataPoints">--</div>
+                <div class="stat-label">Data Points</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="endpointStatus">--</div>
+                <div class="stat-label">Endpoint Status</div>
+            </div>
+        </div>
+        <div id="results" class="results">
+            Click "Test Endpoint" to validate real-time data delivery...
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 Raw API Response</h2>
+        <div id="jsonOutput" class="json-output">
+            No data fetched yet...
+        </div>
+    </div>
+
+    <script>
+        let testResults = [];
+
+        async function testEndpoint() {
+            const endpoint = document.getElementById('endpoint').value;
+            const location = document.getElementById('location').value;
+            const resultsDiv = document.getElementById('results');
+            const jsonDiv = document.getElementById('jsonOutput');
+
+            resultsDiv.innerHTML = '⏳ Testing endpoint...';
+            resultsDiv.className = 'results';
+
+            try {
+                const startTime = Date.now();
+                const url = `http://localhost:5000${endpoint}&location=${encodeURIComponent(location)}`;
+
+                console.log('🧪 Testing URL:', url);
+
+                const response = await fetch(url, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+
+                const responseTime = Date.now() - startTime;
+                document.getElementById('responseTime').textContent = responseTime;
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                // Validate data freshness
+                let dataAge = 'N/A';
+                let dataPoints = 0;
+                let latestTimestamp = null;
+
+                if (data.air_quality && data.air_quality.length > 0) {
+                    latestTimestamp = data.air_quality[data.air_quality.length - 1].timestamp;
+                    dataPoints += data.air_quality.length;
+                }
+                if (data.ground_measurements && data.ground_measurements.length > 0) {
+                    if (!latestTimestamp || new Date(data.ground_measurements[data.ground_measurements.length - 1].timestamp) > new Date(latestTimestamp)) {
+                        latestTimestamp = data.ground_measurements[data.ground_measurements.length - 1].timestamp;
+                    }
+                    dataPoints += data.ground_measurements.length;
+                }
+                if (data.weather && data.weather.length > 0) {
+                    dataPoints += data.weather.length;
+                }
+                if (data.pm25 && data.pm25.length > 0) {
+                    latestTimestamp = data.pm25[data.pm25.length - 1].timestamp;
+                    dataPoints += data.pm25.length;
+                }
+                if (data.temperature && data.temperature.length > 0) {
+                    latestTimestamp = data.temperature[data.temperature.length - 1].timestamp;
+                    dataPoints += data.temperature.length;
+                }
+                if (data.wind && data.wind.length > 0) {
+                    latestTimestamp = data.wind[data.wind.length - 1].timestamp;
+                    dataPoints += data.wind.length;
+                }
+
+                if (latestTimestamp) {
+                    const dataTime = new Date(latestTimestamp).getTime();
+                    const currentTime = Date.now();
+                    const ageMinutes = (currentTime - dataTime) / (1000 * 60);
+                    dataAge = ageMinutes.toFixed(1);
+
+                    document.getElementById('dataAge').textContent = dataAge;
+                    document.getElementById('dataAge').parentElement.className =
+                        ageMinutes <= 30 ? 'stat-card real-time' :
+                            ageMinutes <= 120 ? 'stat-card near-real-time' : 'stat-card historical';
+                }
+
+                document.getElementById('dataPoints').textContent = dataPoints;
+                document.getElementById('endpointStatus').textContent = '✅ Success';
+                document.getElementById('endpointStatus').parentElement.className = 'stat-card real-time';
+
+                // Display results
+                let resultHtml = '<h3>✅ Endpoint Test Successful</h3>';
+                resultHtml += `<p><strong>🌐 Endpoint:</strong> ${endpoint}</p>`;
+                resultHtml += `<p><strong>📍 Location:</strong> ${location}</p>`;
+                resultHtml += `<p><strong>⚡ Response Time:</strong> ${responseTime}ms</p>`;
+                resultHtml += `<p><strong>📊 Data Points:</strong> ${dataPoints}</p>`;
+
+                if (latestTimestamp) {
+                    const ageClass = dataAge <= 30 ? 'real-time' : dataAge <= 120 ? 'near-real-time' : 'historical';
+                    const ageStatus = dataAge <= 30 ? 'REAL-TIME' : dataAge <= 120 ? 'NEAR REAL-TIME' : 'HISTORICAL';
+                    resultHtml += `<p><strong>🕒 Data Freshness:</strong> <span class="data-age ${ageClass}">${ageStatus} (${dataAge} min old)</span></p>`;
+                }
+
+                if (data.data_source) {
+                    resultHtml += `<p><strong>📡 Data Source:</strong> ${data.data_source}</p>`;
+                }
+
+                if (data.source) {
+                    resultHtml += `<p><strong>🔗 Source:</strong> ${data.source}</p>`;
+                }
+
+                resultsDiv.innerHTML = resultHtml;
+                resultsDiv.className = 'results success';
+
+                // Display JSON
+                jsonDiv.textContent = JSON.stringify(data, null, 2);
+
+                // Store result for comparison
+                testResults.push({
+                    endpoint,
+                    location,
+                    responseTime,
+                    dataAge,
+                    dataPoints,
+                    timestamp: new Date().toISOString(),
+                    success: true
+                });
+
+            } catch (error) {
+                console.error('❌ Endpoint test failed:', error);
+
+                document.getElementById('endpointStatus').textContent = '❌ Failed';
+                document.getElementById('endpointStatus').parentElement.className = 'stat-card historical';
+
+                resultsDiv.innerHTML = `
+                    <h3>❌ Endpoint Test Failed</h3>
+                    <p><strong>🌐 Endpoint:</strong> ${endpoint}</p>
+                    <p><strong>📍 Location:</strong> ${location}</p>
+                    <p><strong>⚠️ Error:</strong> ${error.message}</p>
+                    <p><strong>💡 Possible Issues:</strong></p>
+                    <ul>
+                        <li>Backend server not running on port 5000</li>
+                        <li>CORS issues (try running from same origin)</li>
+                        <li>API endpoint not implemented</li>
+                        <li>Network connectivity issues</li>
+                    </ul>
+                `;
+                resultsDiv.className = 'results error';
+
+                jsonDiv.textContent = `Error: ${error.message}`;
+
+                testResults.push({
+                    endpoint,
+                    location,
+                    error: error.message,
+                    timestamp: new Date().toISOString(),
+                    success: false
+                });
+            }
+        }
+
+        async function testAllEndpoints() {
+            const endpoints = [
+                '/api/dashboard',
+                '/api/nasa-data',
+                '/api/openaq-data',
+                '/api/data/air-quality?source=nasa',
+                '/api/data/air-quality?source=openaq',
+                '/api/data/pm25?source=openaq',
+                '/api/data/temperature?source=openaq'
+            ];
+
+            document.getElementById('results').innerHTML = '🧪 Testing all endpoints...';
+
+            for (const endpoint of endpoints) {
+                document.getElementById('endpoint').value = endpoint;
+                await testEndpoint();
+                await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
+            }
+
+            // Generate summary
+            const successful = testResults.filter(r => r.success).length;
+            const failed = testResults.length - successful;
+
+            let summaryHtml = '<h3>📊 All Endpoints Test Summary</h3>';
+            summaryHtml += `<p><strong>✅ Successful:</strong> ${successful}</p>`;
+            summaryHtml += `<p><strong>❌ Failed:</strong> ${failed}</p>`;
+            summaryHtml += '<h4>📋 Detailed Results:</h4><ul>';
+
+            testResults.forEach(result => {
+                if (result.success) {
+                    summaryHtml += `<li>✅ ${result.endpoint} - ${result.responseTime}ms - ${result.dataAge}min old</li>`;
+                } else {
+                    summaryHtml += `<li>❌ ${result.endpoint} - ${result.error}</li>`;
+                }
+            });
+
+            summaryHtml += '</ul>';
+
+            document.getElementById('results').innerHTML = summaryHtml;
+            document.getElementById('results').className = 'results';
+        }
+
+        // Auto-refresh every 30 seconds for real-time monitoring
+        setInterval(() => {
+            if (document.getElementById('results').textContent.includes('✅')) {
+                console.log('🔄 Auto-refreshing data...');
+                testEndpoint();
+            }
+        }, 30000);
+    </script>
+</body>
+
+</html>
