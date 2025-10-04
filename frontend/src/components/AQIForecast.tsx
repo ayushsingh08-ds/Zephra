@@ -15,6 +15,7 @@ import {
   Area,
 } from "recharts";
 import "./AQIForecast_School.css";
+import { endpoints } from "../config/api";
 
 interface ForecastData {
   hour: number;
