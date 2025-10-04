@@ -177,7 +177,7 @@ const Dashboard: React.FC = () => {
 
   const fetchAvailableLocations = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/locations');
+      const response = await fetch("http://localhost:5000/api/locations");
       if (response.ok) {
         const locationData = await response.json();
         setLocations(locationData.locations || []);
@@ -191,9 +191,13 @@ const Dashboard: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await fetch(`http://localhost:5000/api/dashboard?location=${encodeURIComponent(selectedLocation)}`);
-      
+
+      const response = await fetch(
+        `http://localhost:5000/api/dashboard?location=${encodeURIComponent(
+          selectedLocation
+        )}`
+      );
+
       if (!response.ok) {
         throw new Error(`Failed to fetch data: ${response.status}`);
       }
@@ -478,11 +482,17 @@ const Dashboard: React.FC = () => {
         <div className="header-content">
           <div className="title-section">
             <h1> NASA Air Quality Dashboard</h1>
-            <p>Real-time environmental monitoring with satellite data integration</p>
+            <p>
+              Real-time environmental monitoring with satellite data integration
+            </p>
             {data?.location_info && (
               <div className="location-info-header">
-                <span className="location-name">{data.location_info.name}, {data.location_info.country}</span>
-                <span className="local-time">{data.location_info.local_time}</span>
+                <span className="location-name">
+                  {data.location_info.name}, {data.location_info.country}
+                </span>
+                <span className="local-time">
+                  {data.location_info.local_time}
+                </span>
               </div>
             )}
           </div>
@@ -607,60 +617,69 @@ const Dashboard: React.FC = () => {
       <div className="dashboard-nav">
         <div className="nav-container">
           {[
-            { 
-              key: 'overview', 
-              label: 'Overview', 
+            {
+              key: "overview",
+              label: "Overview",
               icon: (
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                  <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
                 </svg>
-              )
+              ),
             },
-            { 
-              key: 'weather', 
-              label: 'Weather', 
+            {
+              key: "weather",
+              label: "Weather",
               icon: (
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2v2.95zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41-1.79 1.8z"/>
+                  <path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2v2.95zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41-1.79 1.8z" />
                 </svg>
-              )
+              ),
             },
-            { 
-              key: 'air-quality', 
-              label: 'Air Quality', 
+            {
+              key: "air-quality",
+              label: "Air Quality",
               icon: (
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M14.48 11.95c.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31-.17 0-.31.14-.31.31 0 .17.14.31.31.31zm-2.98 0c.17 0 .31-.14.31-.31 0-.17-.14-.31-.31-.31-.17 0-.3.14-.3.31 0 .17.13.31.3.31zm-2.99 0c.17 0 .31-.14.31-.31 0-.17-.14-.31-.31-.31-.17 0-.3.14-.3.31 0 .17.13.31.3.31zm7.46-6.5c-.17 0-.31.14-.31.31 0 .17.14.31.31.31.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31zm-2.99 0c-.17 0-.3.14-.3.31 0 .17.13.31.3.31.17 0 .31-.14.31-.31 0-.17-.14-.31-.31-.31zm-2.98 0c-.17 0-.31.14-.31.31 0 .17.14.31.31.31.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31zm7.46 3.25c-.17 0-.31.14-.31.31 0 .17.14.31.31.31.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31zm-2.99 0c-.17 0-.3.14-.3.31 0 .17.13.31.3.31.17 0 .31-.14.31-.31 0-.17-.14-.31-.31-.31zm-2.98 0c-.17 0-.31.14-.31.31 0 .17.14.31.31.31.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31z"/>
+                  <path d="M14.48 11.95c.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31-.17 0-.31.14-.31.31 0 .17.14.31.31.31zm-2.98 0c.17 0 .31-.14.31-.31 0-.17-.14-.31-.31-.31-.17 0-.3.14-.3.31 0 .17.13.31.3.31zm-2.99 0c.17 0 .31-.14.31-.31 0-.17-.14-.31-.31-.31-.17 0-.3.14-.3.31 0 .17.13.31.3.31zm7.46-6.5c-.17 0-.31.14-.31.31 0 .17.14.31.31.31.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31zm-2.99 0c-.17 0-.3.14-.3.31 0 .17.13.31.3.31.17 0 .31-.14.31-.31 0-.17-.14-.31-.31-.31zm-2.98 0c-.17 0-.31.14-.31.31 0 .17.14.31.31.31.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31zm7.46 3.25c-.17 0-.31.14-.31.31 0 .17.14.31.31.31.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31zm-2.99 0c-.17 0-.3.14-.3.31 0 .17.13.31.3.31.17 0 .31-.14.31-.31 0-.17-.14-.31-.31-.31zm-2.98 0c-.17 0-.31.14-.31.31 0 .17.14.31.31.31.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31z" />
                 </svg>
-              )
+              ),
             },
-            { 
-              key: 'satellite', 
-              label: 'Satellite', 
+            {
+              key: "satellite",
+              label: "Satellite",
               icon: (
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" />
                 </svg>
-              )
+              ),
             },
-            { 
-              key: 'health', 
-              label: 'Health', 
+            {
+              key: "health",
+              label: "Health",
               icon: (
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12s4.48 10 10 10 10-4.48 10-10zm-2.99-.5c0 3.86-3.13 7-7 7s-7-3.14-7-7 3.13-7 7-7 7 3.14 7 7zm-7-4v2H9.5v3h2.5v2.5h3V12.5H18v-3h-2.5V7h-3z"/>
+                  <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12s4.48 10 10 10 10-4.48 10-10zm-2.99-.5c0 3.86-3.13 7-7 7s-7-3.14-7-7 3.13-7 7-7 7 3.14 7 7zm-7-4v2H9.5v3h2.5v2.5h3V12.5H18v-3h-2.5V7h-3z" />
                 </svg>
-              )
+              ),
             },
-            { 
-              key: 'forecast', 
-              label: 'Forecast', 
+            {
+              key: "forecast",
+              label: "Forecast",
               icon: (
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
+                  <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
                 </svg>
-              )
-            }
+              ),
+            },
+            {
+              key: "ml-forecast",
+              label: "ML Forecast",
+              icon: (
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14h-2V9h2v8zm-4 0H8v-6h2v6zm8 0h-2v-4h2v4z" />
+                </svg>
+              ),
+            },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -1456,20 +1475,34 @@ const Dashboard: React.FC = () => {
                 {data?.forecast?.map((item, index) => (
                   <div key={index} className="forecast-item">
                     <div className="forecast-time">{item.hour}</div>
-                    <div className="forecast-aqi">AQI: {Math.round(item.predicted_aqi)}</div>
-                    <div className="forecast-confidence">{Math.round(item.confidence)}% confident</div>
-                    <div className={`forecast-status ${
-                      item.predicted_aqi <= 50 ? 'good' :
-                      item.predicted_aqi <= 100 ? 'moderate' :
-                      item.predicted_aqi <= 150 ? 'unhealthy-sensitive' :
-                      item.predicted_aqi <= 200 ? 'unhealthy' :
-                      'very-unhealthy'
-                    }`}>
-                      {item.predicted_aqi <= 50 ? 'Good' :
-                       item.predicted_aqi <= 100 ? 'Moderate' :
-                       item.predicted_aqi <= 150 ? 'Unhealthy for Sensitive Groups' :
-                       item.predicted_aqi <= 200 ? 'Unhealthy' :
-                       'Very Unhealthy'}
+                    <div className="forecast-aqi">
+                      AQI: {Math.round(item.predicted_aqi)}
+                    </div>
+                    <div className="forecast-confidence">
+                      {Math.round(item.confidence)}% confident
+                    </div>
+                    <div
+                      className={`forecast-status ${
+                        item.predicted_aqi <= 50
+                          ? "good"
+                          : item.predicted_aqi <= 100
+                          ? "moderate"
+                          : item.predicted_aqi <= 150
+                          ? "unhealthy-sensitive"
+                          : item.predicted_aqi <= 200
+                          ? "unhealthy"
+                          : "very-unhealthy"
+                      }`}
+                    >
+                      {item.predicted_aqi <= 50
+                        ? "Good"
+                        : item.predicted_aqi <= 100
+                        ? "Moderate"
+                        : item.predicted_aqi <= 150
+                        ? "Unhealthy for Sensitive Groups"
+                        : item.predicted_aqi <= 200
+                        ? "Unhealthy"
+                        : "Very Unhealthy"}
                     </div>
                   </div>
                 )) || []}
