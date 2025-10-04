@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import './Home.css';
 import './LocationMap.css';
 import OfflineIndicator from './OfflineIndicator';
-import { ServiceManager, type ServiceStatus } from '../services/ServiceManager';
+import Carousel from './Carousel';
+import { ServiceManager } from '../services/ServiceManager';
 
 interface AirQualityData {
   aqi: number;
@@ -67,10 +68,8 @@ const Home: React.FC = () => {
   
   // Data source selection state
   const [dataSource, setDataSource] = useState<'dashboard' | 'nasa-data' | 'openaq-data'>('dashboard');
-  const [apiEndpointUsed, setApiEndpointUsed] = useState<string>('/api/dashboard');
   
   // Service Manager state
-  const [serviceStatus, setServiceStatus] = useState<ServiceStatus | null>(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const serviceManagerRef = useRef<ServiceManager | null>(null);
   
@@ -108,6 +107,9 @@ const Home: React.FC = () => {
     takesAirQualityMeds: false,
     additionalConditions: ''
   });
+  
+  // Fullscreen map state
+  const [showFullscreenMap, setShowFullscreenMap] = useState(false);
 
   // Real API endpoints - Now connected to FastAPI backend
   const fetchAirQualityData = async () => {
@@ -264,13 +266,97 @@ const Home: React.FC = () => {
     return '#051f4a';                     // Hazardous - Deepest Blue
   };
 
-  const getAQIBackgroundColor = (aqi: number) => {
-    if (aqi <= 50) return 'rgba(25, 118, 210, 0.1)';
-    if (aqi <= 100) return 'rgba(21, 101, 192, 0.15)';
-    if (aqi <= 150) return 'rgba(13, 71, 161, 0.2)';
-    if (aqi <= 200) return 'rgba(10, 61, 145, 0.25)';
-    if (aqi <= 300) return 'rgba(8, 54, 128, 0.3)';
-    return 'rgba(5, 31, 74, 0.35)';
+  // Prepare carousel data
+  const getCarouselData = () => {
+    if (!airQualityData) return [];
+    
+    return [
+      {
+        id: 'aqi',
+        title: 'Air Quality Index',
+        value: airQualityData.aqi,
+        unit: ' AQI',
+        color: getAQIColor(airQualityData.aqi),
+        description: airQualityData.status,
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+        )
+      },
+      {
+        id: 'pm25',
+        title: 'PM2.5',
+        value: airQualityData.pm25,
+        unit: ' μg/m³',
+        color: getAQIColor(airQualityData.pm25 > 50 ? 150 : 50),
+        description: 'Fine particles',
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="3"/>
+            <circle cx="12" cy="12" r="8"/>
+          </svg>
+        )
+      },
+      {
+        id: 'pm10',
+        title: 'PM10',
+        value: airQualityData.pm10,
+        unit: ' μg/m³',
+        color: getAQIColor(airQualityData.pm10 > 100 ? 120 : 50),
+        description: 'Coarse particles',
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="4"/>
+            <circle cx="12" cy="12" r="9"/>
+          </svg>
+        )
+      },
+      {
+        id: 'o3',
+        title: 'Ozone',
+        value: airQualityData.o3,
+        unit: ' μg/m³',
+        color: getAQIColor(airQualityData.o3 > 120 ? 100 : 50),
+        description: 'Ground-level ozone',
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/>
+            <path d="M8 12h8"/>
+          </svg>
+        )
+      },
+      {
+        id: 'no2',
+        title: 'NO2',
+        value: airQualityData.no2,
+        unit: ' μg/m³',
+        color: getAQIColor(airQualityData.no2 > 80 ? 120 : 50),
+        description: 'Nitrogen dioxide',
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14,2 14,8 20,8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+          </svg>
+        )
+      },
+      {
+        id: 'so2',
+        title: 'SO2',
+        value: airQualityData.so2,
+        unit: ' μg/m³',
+        color: getAQIColor(airQualityData.so2 > 60 ? 100 : 50),
+        description: 'Sulfur dioxide',
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        )
+      }
+    ];
   };
 
   // Geolocation functions
@@ -430,7 +516,7 @@ const Home: React.FC = () => {
       enabled: true,
       notificationEnabled: true
     });
-    setShowAlertModal(false);
+    closeModal('alert');
     
     // Save to localStorage
     const updatedSettings = [...alertSettings, alert];
@@ -476,7 +562,7 @@ const Home: React.FC = () => {
     
     setHealthProfile(profile);
     localStorage.setItem('healthProfile', JSON.stringify(profile));
-    setShowHealthModal(false);
+    closeModal('health');
     
     // Generate personalized recommendations based on profile
     generateHealthRecommendations(profile);
@@ -553,6 +639,32 @@ const Home: React.FC = () => {
     return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
   };
 
+
+
+  const openModal = (modalType: 'alert' | 'health') => {
+    if (modalType === 'alert') {
+      setShowAlertModal(true);
+    } else {
+      setShowHealthModal(true);
+    }
+  };
+
+  const closeModal = (modalType: 'alert' | 'health') => {
+    if (modalType === 'alert') {
+      setShowAlertModal(false);
+    } else {
+      setShowHealthModal(false);
+    }
+  };
+  
+  const openFullscreenMap = () => {
+    setShowFullscreenMap(true);
+  };
+  
+  const closeFullscreenMap = () => {
+    setShowFullscreenMap(false);
+  };
+
   const refreshData = async () => {
     setLoading(true);
     await fetchAirQualityData(); // This now fetches both air quality and weather data
@@ -585,8 +697,8 @@ const Home: React.FC = () => {
         await serviceManagerRef.current.initialize();
         
         // Get initial service status
-        const status = await serviceManagerRef.current.getStatus();
-        setServiceStatus(status);
+        await serviceManagerRef.current.getStatus();
+        // Service status updated
         
         console.log('Service Manager initialized successfully');
         
@@ -774,33 +886,30 @@ const Home: React.FC = () => {
             <span className="time-value">{lastUpdated.toLocaleTimeString()}</span>
           </div>
           
-          <div className="api-selector-container">
-            <div className="source-label-compact">API Endpoint</div>
-            <select 
-              value={dataSource} 
-              onChange={(e) => setDataSource(e.target.value as 'dashboard' | 'nasa-data' | 'openaq-data')}
-              className="source-dropdown-compact"
-            >
-              <option value="dashboard">🌐 /api/dashboard</option>
-              <option value="nasa-data">🛰️ /api/nasa-data</option>
-              <option value="openaq-data">📡 /api/openaq-data</option>
-            </select>
-          </div>
-          
-          <div className="data-source">
-            <span className="source-badge">
-              <div className="live-indicator"></div>
-              {dataSource === 'nasa-data' ? '🛰️ NASA Satellite Data' : 
-               dataSource === 'openaq-data' ? '📡 OpenAQ Ground Stations' : 
-               '🌐 Combined NASA + Ground Data'}
-              <span className="api-endpoint-info"> • {apiEndpointUsed}</span>
-              {serviceStatus && (
-                <span className="service-info"> • SW: {serviceStatus.serviceWorker.isRegistered ? '✓' : '✗'}</span>
-              )}
-              {updateAvailable && (
-                <span className="update-badge">Update Available</span>
-              )}
-            </span>
+          <div className="time-info-right">
+            <div className="data-source">
+              <span className="source-badge">
+                <div className="live-indicator"></div>
+                {dataSource === 'nasa-data' ? ' NASA Satellite Data' : 
+                 dataSource === 'openaq-data' ? ' OpenAQ Ground Stations' : 
+                 ' Combined NASA + Ground Data'}
+                {updateAvailable && (
+                  <span className="update-badge">Update Available</span>
+                )}
+              </span>
+            </div>
+            <div className="api-selector-container">
+              <div className="source-label-compact">API Endpoint</div>
+              <select 
+                value={dataSource} 
+                onChange={(e) => setDataSource(e.target.value as 'dashboard' | 'nasa-data' | 'openaq-data')}
+                className="source-dropdown-compact"
+              >
+                <option value="dashboard">/api/dashboard</option>
+                <option value="nasa-data">/api/nasa-data</option>
+                <option value="openaq-data">/api/openaq-data</option>
+              </select>
+            </div>
           </div>
         </div>
       </section>
@@ -811,7 +920,7 @@ const Home: React.FC = () => {
           <div className="aqi-primary-card">
             <div className="aqi-card-header">
               <div className="header-left">
-                <h2>Air Quality Index</h2>
+                <h2>Real-time Monitor</h2>
                 <div className="aqi-location">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
@@ -839,20 +948,16 @@ const Home: React.FC = () => {
             ) : (
               <div className={`aqi-main-content ${airQualityData ? 'data-loaded' : ''}`}>
                 <div className="aqi-visual">
-                  <div className="aqi-circle-container">
-                    <div 
-                      className="aqi-circle" 
-                      style={{ 
-                        borderColor: getAQIColor(airQualityData?.aqi || 0),
-                        background: getAQIBackgroundColor(airQualityData?.aqi || 0)
-                      }}
-                    >
-                      <div className="aqi-number" style={{ color: getAQIColor(airQualityData?.aqi || 0) }}>
-                        {airQualityData?.aqi || 0}
-                      </div>
-                      <div className="aqi-unit">AQI</div>
-                    </div>
-                    <div className="aqi-ring" style={{ borderColor: getAQIColor(airQualityData?.aqi || 0) }}></div>
+                  <div style={{ height: '160px', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Carousel
+                      items={getCarouselData()}
+                      baseWidth={140}
+                      autoplay={true}
+                      autoplayDelay={5000}
+                      pauseOnHover={true}
+                      loop={true}
+                      round={true}
+                    />
                   </div>
                   
                   <div className="aqi-description">
@@ -912,7 +1017,7 @@ const Home: React.FC = () => {
                 <div className="map-preview">
                   <div className="map-header">
                     <span className="map-title">North America Air Quality</span>
-                    <button className="expand-map-btn" title="Expand Map (Coming Soon)">
+                    <button className="expand-map-btn" title="Expand Map" onClick={openFullscreenMap}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <polyline points="15,3 21,3 21,9"/>
                         <polyline points="9,21 3,21 3,15"/>
@@ -1157,7 +1262,7 @@ const Home: React.FC = () => {
             </div>
           </button>
           
-          <button className="action-card" onClick={() => setShowAlertModal(true)}>
+          <button className="action-card" onClick={() => openModal('alert')}>
             <div className="action-content">
               <div className="action-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1220,7 +1325,7 @@ const Home: React.FC = () => {
           </button>
           
           {/* Health Assessment - Two Width Action Card */}
-          <button className="action-card health-assessment-wide" onClick={() => setShowHealthModal(true)}>
+          <button className="action-card health-assessment-wide" onClick={() => openModal('health')}>
             <div className="action-content">
               <div className="action-icon health-icon-fixed">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1256,11 +1361,14 @@ const Home: React.FC = () => {
       
       {/* Alert Settings Modal */}
       {showAlertModal && (
-        <div className="modal-overlay" onClick={() => setShowAlertModal(false)}>
-          <div className="alert-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={() => closeModal('alert')}>
+          <div 
+            className="alert-modal" 
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
               <h3>Air Quality Alerts</h3>
-              <button className="close-btn" onClick={() => setShowAlertModal(false)}>
+              <button className="close-btn" onClick={() => closeModal('alert')}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18"/>
                   <line x1="6" y1="6" x2="18" y2="18"/>
@@ -1379,11 +1487,14 @@ const Home: React.FC = () => {
       
       {/* Health Assessment Modal */}
       {showHealthModal && (
-        <div className="modal-overlay" onClick={() => setShowHealthModal(false)}>
-          <div className="alert-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={() => closeModal('health')}>
+          <div 
+            className="alert-modal" 
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
               <h3>Health Assessment</h3>
-              <button className="close-btn" onClick={() => setShowHealthModal(false)}>
+              <button className="close-btn" onClick={() => closeModal('health')}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18"/>
                   <line x1="6" y1="6" x2="18" y2="18"/>
@@ -1515,6 +1626,213 @@ const Home: React.FC = () => {
                       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                     </svg>
                     <span>Your health information is stored locally and never shared.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Fullscreen Map Modal */}
+      {showFullscreenMap && (
+        <div className="fullscreen-map-overlay" onClick={closeFullscreenMap}>
+          <div className="fullscreen-map-container" onClick={(e) => e.stopPropagation()}>
+            <div className="fullscreen-map-header">
+              <div className="map-header-left">
+                <h2>Global Air Quality Map</h2>
+                <p>Real-time air quality monitoring worldwide</p>
+              </div>
+              <button className="close-fullscreen-btn" onClick={closeFullscreenMap}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="fullscreen-map-content">
+              <div className="map-controls">
+                <div className="control-group">
+                  <label>Region:</label>
+                  <select className="region-selector">
+                    <option value="global">Global View</option>
+                    <option value="north-america">North America</option>
+                    <option value="europe">Europe</option>
+                    <option value="asia">Asia</option>
+                    <option value="oceania">Oceania</option>
+                  </select>
+                </div>
+                
+                <div className="control-group">
+                  <label>Pollutant:</label>
+                  <select className="pollutant-selector">
+                    <option value="aqi">Air Quality Index</option>
+                    <option value="pm25">PM2.5</option>
+                    <option value="pm10">PM10</option>
+                    <option value="o3">Ozone</option>
+                    <option value="no2">NO2</option>
+                    <option value="so2">SO2</option>
+                  </select>
+                </div>
+                
+                <div className="control-group">
+                  <label>View:</label>
+                  <div className="view-toggle">
+                    <button className="view-btn active">Satellite</button>
+                    <button className="view-btn">Street</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="fullscreen-map-main">
+                <div className="dummy-map">
+                  <div className="map-background"></div>
+                  
+                  {/* Enhanced location markers for fullscreen */}
+                  <div className="fullscreen-locations">
+                    <div className="location-marker-fs location-good" style={{ top: '15%', left: '35%' }}>
+                      <div className="marker-pulse"></div>
+                      <span className="marker-aqi-fs">42</span>
+                      <div className="marker-info">
+                        <span className="marker-city-fs">Toronto</span>
+                        <span className="marker-details">PM2.5: 12 μg/m³</span>
+                      </div>
+                    </div>
+                    
+                    <div className="location-marker-fs location-moderate" style={{ top: '70%', left: '18%' }}>
+                      <div className="marker-pulse"></div>
+                      <span className="marker-aqi-fs">78</span>
+                      <div className="marker-info">
+                        <span className="marker-city-fs">Chicago</span>
+                        <span className="marker-details">PM2.5: 23 μg/m³</span>
+                      </div>
+                    </div>
+                    
+                    <div className="location-marker-fs location-unhealthy" style={{ top: '70%', left: '40%' }}>
+                      <div className="marker-pulse"></div>
+                      <span className="marker-aqi-fs">156</span>
+                      <div className="marker-info">
+                        <span className="marker-city-fs">Atlanta</span>
+                        <span className="marker-details">PM2.5: 65 μg/m³</span>
+                      </div>
+                    </div>
+                    
+                    <div className="location-marker-fs location-good" style={{ top: '30%', left: '14%' }}>
+                      <div className="marker-pulse"></div>
+                      <span className="marker-aqi-fs">35</span>
+                      <div className="marker-info">
+                        <span className="marker-city-fs">Seattle</span>
+                        <span className="marker-details">PM2.5: 8 μg/m³</span>
+                      </div>
+                    </div>
+                    
+                    <div className="location-marker-fs location-moderate" style={{ top: '65%', left: '75%' }}>
+                      <div className="marker-pulse"></div>
+                      <span className="marker-aqi-fs">89</span>
+                      <div className="marker-info">
+                        <span className="marker-city-fs">New York</span>
+                        <span className="marker-details">PM2.5: 28 μg/m³</span>
+                      </div>
+                    </div>
+                    
+                    <div className="location-marker-fs location-good" style={{ top: '25%', left: '60%' }}>
+                      <div className="marker-pulse"></div>
+                      <span className="marker-aqi-fs">48</span>
+                      <div className="marker-info">
+                        <span className="marker-city-fs">London</span>
+                        <span className="marker-details">PM2.5: 14 μg/m³</span>
+                      </div>
+                    </div>
+                    
+                    <div className="location-marker-fs location-moderate" style={{ top: '45%', left: '85%' }}>
+                      <div className="marker-pulse"></div>
+                      <span className="marker-aqi-fs">112</span>
+                      <div className="marker-info">
+                        <span className="marker-city-fs">Tokyo</span>
+                        <span className="marker-details">PM2.5: 35 μg/m³</span>
+                      </div>
+                    </div>
+                    
+                    <div className="location-marker-fs location-unhealthy" style={{ top: '50%', left: '70%' }}>
+                      <div className="marker-pulse"></div>
+                      <span className="marker-aqi-fs">168</span>
+                      <div className="marker-info">
+                        <span className="marker-city-fs">Delhi</span>
+                        <span className="marker-details">PM2.5: 78 μg/m³</span>
+                      </div>
+                    </div>
+                    
+                    {userLocation && (
+                      <div className="location-marker-fs location-current" style={{ top: '30%', left: '50%' }}>
+                        <div className="marker-pulse current-pulse"></div>
+                        <span className="marker-aqi-fs">{airQualityData?.aqi || '--'}</span>
+                        <div className="marker-info">
+                          <span className="marker-city-fs">Your Location</span>
+                          <span className="marker-details">PM2.5: {airQualityData?.pm25 || '--'} μg/m³</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Fullscreen map legend */}
+                  <div className="fullscreen-legend">
+                    <h4>Air Quality Index</h4>
+                    <div className="legend-items">
+                      <div className="legend-item-fs">
+                        <div className="legend-color-fs good"></div>
+                        <span>Good (0-50)</span>
+                      </div>
+                      <div className="legend-item-fs">
+                        <div className="legend-color-fs moderate"></div>
+                        <span>Moderate (51-100)</span>
+                      </div>
+                      <div className="legend-item-fs">
+                        <div className="legend-color-fs unhealthy-sensitive"></div>
+                        <span>Unhealthy for Sensitive (101-150)</span>
+                      </div>
+                      <div className="legend-item-fs">
+                        <div className="legend-color-fs unhealthy"></div>
+                        <span>Unhealthy (151-200)</span>
+                      </div>
+                      <div className="legend-item-fs">
+                        <div className="legend-color-fs very-unhealthy"></div>
+                        <span>Very Unhealthy (201-300)</span>
+                      </div>
+                      <div className="legend-item-fs">
+                        <div className="legend-color-fs hazardous"></div>
+                        <span>Hazardous (301+)</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Map info panel */}
+                  <div className="map-info-panel">
+                    <div className="info-stats">
+                      <div className="info-stat">
+                        <span className="stat-label">Global Average</span>
+                        <span className="stat-value">72 AQI</span>
+                      </div>
+                      <div className="info-stat">
+                        <span className="stat-label">Monitoring Stations</span>
+                        <span className="stat-value">15,000+</span>
+                      </div>
+                      <div className="info-stat">
+                        <span className="stat-label">Last Updated</span>
+                        <span className="stat-value">{new Date().toLocaleTimeString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Coming soon overlay for interactive features */}
+                  <div className="interactive-coming-soon">
+                    <div className="coming-soon-content">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12,6 12,12 16,14"/>
+                      </svg>
+                      <span>Interactive features coming soon</span>
+                    </div>
                   </div>
                 </div>
               </div>

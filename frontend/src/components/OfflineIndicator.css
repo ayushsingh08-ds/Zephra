@@ -1,7 +1,7 @@
 /* Offline Indicator Styling */
 .offline-indicator {
   position: fixed;
-  bottom: 10px;
+  bottom: 40px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1001;

@@ -51,7 +51,7 @@ const Navigation: React.FC = () => {
               className={location.pathname === '/dashboard' ? 'active' : ''}
               onClick={closeMenu}
             >
-              Dashboard
+              Analytics
             </Link>
           </li>
           <li>
@@ -95,7 +95,7 @@ const Navigation: React.FC = () => {
               className={location.pathname === '/dashboard' ? 'active' : ''}
               onClick={closeMenu}
             >
-              Dashboard
+              Analytics
             </Link>
           </li>
           <li>
