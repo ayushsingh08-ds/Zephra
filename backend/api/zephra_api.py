@@ -1255,8 +1255,8 @@ async def startup_event():
     """Initialize services on startup"""
     global ML_MODEL_LOADED, aqi_predictor, data_fetcher
     
-    # Get current port from environment
-    current_port = os.getenv('PORT', '5000')
+    # Get current port from environment (Render uses PORT=10000)
+    current_port = os.getenv('PORT', '10000')
     
     # Print startup banner
     print("\n" + "="*60)
@@ -1320,7 +1320,7 @@ async def startup_event():
 if __name__ == "__main__":
     # Get configuration from environment
     host = os.getenv('HOST', '0.0.0.0')  # Use 0.0.0.0 for deployment compatibility
-    port = int(os.getenv('PORT', '5000'))
+    port = int(os.getenv('PORT', '10000'))  # Match Render's default port
     debug = os.getenv('DEBUG', 'false').lower() == 'true'  # Default to false for production
     log_level = os.getenv('LOG_LEVEL', 'info').lower()
     
