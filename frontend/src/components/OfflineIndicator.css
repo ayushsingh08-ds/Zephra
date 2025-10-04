@@ -4,7 +4,7 @@
   bottom: 40px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1001;
+  z-index: 9997;
   background: rgba(77, 160, 219, 0.15);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);

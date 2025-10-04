@@ -488,10 +488,12 @@ const Dashboard: React.FC = () => {
 
       {error && (
         <div className="error-banner">
-          <span>{error}</span>
-          <button onClick={fetchDashboardData} className="retry-btn-small">
-            Retry
-          </button>
+          <div className="error-banner-content">
+            <span className="error-banner-text">{error}</span>
+            <button onClick={fetchDashboardData} className="retry-btn-small">
+              Retry
+            </button>
+          </div>
         </div>
       )}
 

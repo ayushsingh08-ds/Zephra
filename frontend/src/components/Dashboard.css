@@ -145,6 +145,16 @@
     min-height: 60vh;
     text-align: center;
     color: #1976d2;
+    background: rgba(77, 160, 219, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 40px;
+    margin: 20px;
+    box-shadow: 
+        0 8px 32px rgba(77, 160, 219, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .error-icon {
@@ -246,7 +256,7 @@
 
 /* Dashboard Container */
 .dashboard-container {
-    width: 100vw;
+    width: 100%;
     min-height: 100vh;
     padding: 120px 0 40px 0;
     margin: 0;
@@ -255,10 +265,6 @@
     box-sizing: border-box;
     overflow-x: hidden;
     position: relative;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
 }
 
 /* Global Animated Background (inherited from Home.css) */
@@ -540,59 +546,120 @@
     background: #ff9800;
 }
 
-/* Error Banner Styles */
+/* Error Banner Styles - Bottom Popup */
 .error-banner {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(45deg, #ff9800, #f57c00);
-    color: white;
-    padding: 12px 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    animation: slideDown 0.3s ease-out;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 235, 59, 0.2);
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    color: #ec9e50;
+    padding: 16px 24px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 193, 7, 0.4);
+    box-shadow: 
+        0 8px 32px rgba(255, 193, 7, 0.2),
+        0 4px 16px rgba(255, 152, 0, 0.15),
+        inset 0 1px 0 rgba(255, 248, 225, 0.6),
+        inset 0 -1px 0 rgba(255, 235, 59, 0.3);
+    z-index: 9996;
+    animation: slideUpError 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 400px;
+    width: calc(100% - 40px);
+    font-family: 'Montserrat', sans-serif;
 }
 
 .error-banner-content {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 12px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.error-banner-icon {
-    font-size: 1.2rem;
+    justify-content: space-between;
+    gap: 16px;
 }
 
 .error-banner-text {
+    flex: 1;
     font-size: 0.9rem;
-    font-weight: 500;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #eba25a;
 }
 
-.error-banner-retry {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-size: 0.8rem;
+.error-banner-retry,
+.retry-btn-small {
+    background: rgba(223, 193, 102, 0.35);
+    color: #edab69a0;
+    border: 1px solid rgba(255, 193, 7, 0.4);
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    font-family: 'Montserrat', sans-serif;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
-.error-banner-retry:hover {
-    background: rgba(255, 255, 255, 0.3);
+.error-banner-retry:hover,
+.retry-btn-small:hover {
+    background: rgba(255, 193, 7, 0.35);
+    border-color: rgba(255, 193, 7, 0.6);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+    color: #e65100;
 }
 
-@keyframes slideDown {
+@keyframes slideUpError {
     from {
-        transform: translateY(-100%);
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px) scale(0.95);
     }
     to {
-        transform: translateY(0);
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+}
+
+/* Mobile responsive styles for error banner */
+@media (max-width: 768px) {
+    .error-banner {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 35px;
+        max-width: 350px;
+        padding: 14px 20px;
+    }
+    
+    .error-banner-content {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+    
+    .retry-btn-small {
+        width: 100%;
+        padding: 10px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .error-banner {
+        bottom: 10px;
+        width: calc(100% - 20px);
+        padding: 12px 16px;
+    }
+    
+    .error-banner-text {
+        font-size: 0.85rem;
+    }
+    
+    .retry-btn-small {
+        font-size: 0.8rem;
+        padding: 8px 14px;
     }
 }
 
@@ -1074,6 +1141,16 @@
     min-height: 60vh;
     text-align: center;
     color: #1976d2;
+    background: rgba(77, 160, 219, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 40px;
+    margin: 20px;
+    box-shadow: 
+        0 8px 32px rgba(77, 160, 219, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .loading-spinner {

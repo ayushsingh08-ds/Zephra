@@ -20,7 +20,7 @@
   min-height: 70px;
   max-height: 70px;
   box-shadow: 0 8px 32px rgba(77, 160, 219, 0.08);
-  z-index: 1000;
+  z-index: 9999;
   transition: all 0.9s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: 'Montserrat', sans-serif;
   overflow: hidden;
@@ -51,13 +51,12 @@
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(77, 160, 219, 0.2);
   box-shadow: 0 12px 40px rgba(77, 160, 219, 0.12);
-  transform: translateX(-50%);
 }
 
 /* Brand Styling */
 .nav-brand {
   position: relative;
-  z-index: 1001;
+  z-index: 10000;
 }
 
 .nav-brand a {
@@ -201,7 +200,7 @@
   border: none;
   cursor: pointer;
   padding: 0.5rem;
-  z-index: 1001;
+  z-index: 10000;
   border-radius: 50%;
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.1);
