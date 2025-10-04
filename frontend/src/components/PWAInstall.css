@@ -5,7 +5,7 @@
   position: fixed;
   bottom: 20px;
   right: 20px;
-  z-index: 1001;
+  z-index: 9998;
   max-width: 350px;
   width: calc(100% - 40px);
   animation: slideInUp 0.3s ease-out;

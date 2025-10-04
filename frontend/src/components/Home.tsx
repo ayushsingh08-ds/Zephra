@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import './Home.css';
 import './LocationMap.css';
 import OfflineIndicator from './OfflineIndicator';
-import Carousel from './Carousel';
 import { ServiceManager } from '../services/ServiceManager';
 
 interface AirQualityData {
@@ -266,98 +265,16 @@ const Home: React.FC = () => {
     return '#051f4a';                     // Hazardous - Deepest Blue
   };
 
-  // Prepare carousel data
-  const getCarouselData = () => {
-    if (!airQualityData) return [];
-    
-    return [
-      {
-        id: 'aqi',
-        title: 'Air Quality Index',
-        value: airQualityData.aqi,
-        unit: ' AQI',
-        color: getAQIColor(airQualityData.aqi),
-        description: airQualityData.status,
-        icon: (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 6v6l4 2"/>
-          </svg>
-        )
-      },
-      {
-        id: 'pm25',
-        title: 'PM2.5',
-        value: airQualityData.pm25,
-        unit: ' μg/m³',
-        color: getAQIColor(airQualityData.pm25 > 50 ? 150 : 50),
-        description: 'Fine particles',
-        icon: (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="3"/>
-            <circle cx="12" cy="12" r="8"/>
-          </svg>
-        )
-      },
-      {
-        id: 'pm10',
-        title: 'PM10',
-        value: airQualityData.pm10,
-        unit: ' μg/m³',
-        color: getAQIColor(airQualityData.pm10 > 100 ? 120 : 50),
-        description: 'Coarse particles',
-        icon: (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="4"/>
-            <circle cx="12" cy="12" r="9"/>
-          </svg>
-        )
-      },
-      {
-        id: 'o3',
-        title: 'Ozone',
-        value: airQualityData.o3,
-        unit: ' μg/m³',
-        color: getAQIColor(airQualityData.o3 > 120 ? 100 : 50),
-        description: 'Ground-level ozone',
-        icon: (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/>
-            <path d="M8 12h8"/>
-          </svg>
-        )
-      },
-      {
-        id: 'no2',
-        title: 'NO2',
-        value: airQualityData.no2,
-        unit: ' μg/m³',
-        color: getAQIColor(airQualityData.no2 > 80 ? 120 : 50),
-        description: 'Nitrogen dioxide',
-        icon: (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14,2 14,8 20,8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-          </svg>
-        )
-      },
-      {
-        id: 'so2',
-        title: 'SO2',
-        value: airQualityData.so2,
-        unit: ' μg/m³',
-        color: getAQIColor(airQualityData.so2 > 60 ? 100 : 50),
-        description: 'Sulfur dioxide',
-        icon: (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-        )
-      }
-    ];
+  const getAQIBackgroundColor = (aqi: number) => {
+    if (aqi <= 50) return 'rgba(25, 118, 210, 0.1)';      // Good - Light Blue
+    if (aqi <= 100) return 'rgba(21, 101, 192, 0.1)';     // Moderate - Medium Blue  
+    if (aqi <= 150) return 'rgba(13, 71, 161, 0.1)';      // Unhealthy for Sensitive - Dark Blue
+    if (aqi <= 200) return 'rgba(10, 61, 145, 0.1)';      // Unhealthy - Darker Blue
+    if (aqi <= 300) return 'rgba(8, 54, 128, 0.1)';       // Very Unhealthy - Very Dark Blue
+    return 'rgba(5, 31, 74, 0.1)';                         // Hazardous - Deepest Blue
   };
+
+
 
   // Geolocation functions
   const getCurrentLocation = async () => {
@@ -948,16 +865,20 @@ const Home: React.FC = () => {
             ) : (
               <div className={`aqi-main-content ${airQualityData ? 'data-loaded' : ''}`}>
                 <div className="aqi-visual">
-                  <div style={{ height: '160px', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <Carousel
-                      items={getCarouselData()}
-                      baseWidth={140}
-                      autoplay={true}
-                      autoplayDelay={5000}
-                      pauseOnHover={true}
-                      loop={true}
-                      round={true}
-                    />
+                  <div className="aqi-circle-container">
+                    <div 
+                      className="aqi-circle" 
+                      style={{ 
+                        borderColor: getAQIColor(airQualityData?.aqi || 0),
+                        background: getAQIBackgroundColor(airQualityData?.aqi || 0)
+                      }}
+                    >
+                      <div className="aqi-number" style={{ color: getAQIColor(airQualityData?.aqi || 0) }}>
+                        {airQualityData?.aqi || 0}
+                      </div>
+                      <div className="aqi-unit">AQI</div>
+                    </div>
+                    <div className="aqi-ring" style={{ borderColor: getAQIColor(airQualityData?.aqi || 0) }}></div>
                   </div>
                   
                   <div className="aqi-description">
@@ -1091,7 +1012,7 @@ const Home: React.FC = () => {
       <section className="quick-stats">
         <h3 className="section-title">Air Quality Metrics</h3>
         <div className={`stats-grid ${airQualityData ? 'data-loaded' : ''}`}>
-                    <div className="forecast-card">
+            <div className="forecast-card">
               <div className="forecast-header">
                 <h4>Today's Forecast</h4>
                 <div className="forecast-icon">

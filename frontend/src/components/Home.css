@@ -1,5 +1,5 @@
 .home-container {
-    width: 100vw;
+    width: 100%;
     min-height: 100vh;
     padding: 120px 0 40px 0;
     margin: 0;
@@ -8,10 +8,6 @@
     box-sizing: border-box;
     overflow-x: hidden;
     position: relative;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
 }
 
 /* GLOBAL ANIMATED BACKGROUND */
@@ -908,6 +904,10 @@
         width: 100%;
     }
 
+    .forecast-icon {
+        display: none;
+    }
+
     .time-info-right {
         flex-direction: column;
         gap: 15px;
@@ -1007,6 +1007,10 @@
 
     .source-label-compact {
         font-size: 0.65rem;
+    }
+
+        .forecast-icon {
+        display: none;
     }
 }
 
@@ -1432,6 +1436,86 @@
     padding: 0 10px;
 }
 
+/* Pollutants Grid Styles */
+.pollutants-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 25px;
+    padding: 20px;
+    background: rgba(77, 160, 219, 0.08);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.pollutant-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 15px 10px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.pollutant-item:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.pollutant-icon {
+    width: 32px;
+    height: 32px;
+    color: #1976d2;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.pollutant-item:hover .pollutant-icon {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.pollutant-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.pollutant-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.pollutant-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1976d2;
+    margin-top: 2px;
+}
+
+.pollutant-unit {
+    font-size: 0.7rem;
+    color: #1565c0;
+    opacity: 0.7;
+    font-weight: 500;
+}
+
 .aqi-secondary-cards {
     display: flex;
     flex-direction: column;
@@ -1501,7 +1585,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 17px;
 }
 
 .insight-header h4,
@@ -2531,6 +2615,10 @@
         gap: 18px;
     }
 
+    .forecast-header{
+            margin-left: -20px;
+    }
+
     .stat-icon {
         width: 48px;
         height: 48px;
@@ -2585,6 +2673,36 @@
 
     .action-card {
         padding: 22px 18px;
+    }
+
+    /* Pollutants Grid Responsive */
+    .pollutants-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-top: 20px;
+        padding: 15px;
+    }
+
+    .pollutant-item {
+        padding: 12px 8px;
+        gap: 6px;
+    }
+
+    .pollutant-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .pollutant-value {
+        font-size: 1.2rem;
+    }
+
+    .pollutant-label {
+        font-size: 0.75rem;
+    }
+
+    .pollutant-unit {
+        font-size: 0.65rem;
     }
 }
 
@@ -3183,6 +3301,36 @@
 
     .action-subtitle {
         font-size: 0.75rem;
+    }
+
+    /* Pollutants Grid Mobile */
+    .pollutants-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 15px;
+        padding: 12px;
+    }
+
+    .pollutant-item {
+        padding: 10px 6px;
+        gap: 4px;
+    }
+
+    .pollutant-icon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .pollutant-value {
+        font-size: 1rem;
+    }
+
+    .pollutant-label {
+        font-size: 0.7rem;
+    }
+
+    .pollutant-unit {
+        font-size: 0.6rem;
     }
 
     /* MISSING UTILITY STYLES */

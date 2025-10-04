@@ -1,5 +1,5 @@
 .about-container {
-  width: 100vw;
+  width: 100%;
   min-height: 100vh;
   padding: 120px 0 0 0;
   margin: 0;
@@ -8,10 +8,6 @@
   box-sizing: border-box;
   overflow-x: hidden;
   position: relative;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
 }
 
 .logo-image{
