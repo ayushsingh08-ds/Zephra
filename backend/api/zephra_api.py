@@ -38,7 +38,7 @@ app = FastAPI(
 )
 
 # Add CORS middleware
-cors_origins = os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000,https://*.onrender.com').split(',')
+cors_origins = os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000,https://*.onrender.com,https://zephra.earth,https://*.zephra.earth').split(',')
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
