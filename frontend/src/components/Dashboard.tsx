@@ -100,6 +100,8 @@ interface DashboardData {
   location_info?: LocationInfo;
 }
 
+
+
 const Dashboard: React.FC = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
@@ -176,14 +178,30 @@ const Dashboard: React.FC = () => {
   }, [selectedLocation]);
 
   const fetchAvailableLocations = async () => {
+    // Set default locations immediately
+    const defaultLocations = [
+      { name: "New York", lat: 40.7128, lon: -74.0060, country: "USA", timezone: "America/New_York" },
+      { name: "Los Angeles", lat: 34.0522, lon: -118.2437, country: "USA", timezone: "America/Los_Angeles" },
+      { name: "London", lat: 51.5074, lon: -0.1278, country: "UK", timezone: "Europe/London" },
+      { name: "Tokyo", lat: 35.6762, lon: 139.6503, country: "Japan", timezone: "Asia/Tokyo" },
+      { name: "Sydney", lat: -33.8688, lon: 151.2093, country: "Australia", timezone: "Australia/Sydney" },
+      { name: "Delhi", lat: 28.7041, lon: 77.1025, country: "India", timezone: "Asia/Kolkata" },
+      { name: "Berlin", lat: 52.5200, lon: 13.4050, country: "Germany", timezone: "Europe/Berlin" },
+      { name: "Mumbai", lat: 19.0760, lon: 72.8777, country: "India", timezone: "Asia/Kolkata" },
+      { name: "Paris", lat: 48.8566, lon: 2.3522, country: "France", timezone: "Europe/Paris" },
+      { name: "Singapore", lat: 1.3521, lon: 103.8198, country: "Singapore", timezone: "Asia/Singapore" }
+    ];
+    setLocations(defaultLocations);
+
     try {
       const response = await fetch("http://localhost:5000/api/locations");
       if (response.ok) {
         const locationData = await response.json();
-        setLocations(locationData.locations || []);
+        setLocations(locationData.locations || defaultLocations);
       }
     } catch (error) {
       console.error("Error fetching locations:", error);
+      // Keep default locations on error
     }
   };
 
@@ -487,9 +505,50 @@ const Dashboard: React.FC = () => {
             </p>
             {data?.location_info && (
               <div className="location-info-header">
-                <span className="location-name">
-                  {data.location_info.name}, {data.location_info.country}
-                </span>
+                <select
+                  value={selectedLocation}
+                  onChange={(e) => setSelectedLocation(e.target.value)}
+                  className="location-name"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))",
+                    backdropFilter: "blur(10px)",
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                    borderRadius: "12px",
+                    padding: "6px 12px",
+                    color: "white",
+                    fontWeight: "600",
+                    fontSize: "0.9rem",
+                    cursor: "pointer",
+                    marginBottom: "8px",
+                    minWidth: "200px",
+                    boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
+                    outline: "none",
+                    transition: "all 0.3s ease",
+                    fontFamily: "Montserrat, sans-serif"
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "rgba(255, 255, 255, 0.4)";
+                    e.target.style.boxShadow = "0 6px 20px rgba(0, 0, 0, 0.15)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "rgba(255, 255, 255, 0.2)";
+                    e.target.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.1)";
+                  }}
+                >
+                  {locations.map((location) => (
+                    <option 
+                      key={location.name} 
+                      value={location.name}
+                      style={{
+                        background: "#1976d2",
+                        color: "white",
+                        padding: "8px"
+                      }}
+                    >
+                      {location.name}, {location.country}
+                    </option>
+                  ))}
+                </select>
                 <span className="local-time">
                   {data.location_info.local_time}
                 </span>
@@ -520,6 +579,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="location-selector">
+              <div className="loc">
               <label htmlFor="location-select">Location:</label>
 
               {/* Current Location Toggle */}
@@ -542,8 +602,8 @@ const Dashboard: React.FC = () => {
                     : "2px solid rgba(25, 118, 210, 0.3)",
                   background: useCurrentLocation
                     ? "linear-gradient(135deg, #1976d2, #42a5f5)"
-                    : "rgba(255, 255, 255, 0.9)",
-                  color: useCurrentLocation ? "white" : "#1976d2",
+                    : "linear-gradient(135deg, #1976d2, #42a5f5)",
+                  color: useCurrentLocation ? "white" : "white",
                   cursor: "pointer",
                   fontWeight: "600",
                   fontSize: "0.85rem",
@@ -556,14 +616,15 @@ const Dashboard: React.FC = () => {
                     : "0 2px 6px rgba(0, 0, 0, 0.1)",
                 }}
               >
-                📍{" "}
+                {" "}
                 {useCurrentLocation
                   ? "Current Location"
                   : "Use Current Location"}
               </button>
 
+
               {/* Manual Location Selector */}
-              {!useCurrentLocation && (
+              {/* {!useCurrentLocation && (
                 <select
                   id="location-select"
                   value={selectedLocation}
@@ -571,13 +632,18 @@ const Dashboard: React.FC = () => {
                   className="location-dropdown"
                   style={{ marginLeft: "10px" }}
                 >
-                  {locations.map((location) => (
-                    <option key={location.name} value={location.name}>
-                      {location.name}, {location.country}
-                    </option>
-                  ))}
+                  {locations.length === 0 ? (
+                    <option value="">Loading locations...</option>
+                  ) : (
+                    locations.map((location) => (
+                      <option key={location.name} value={location.name}>
+                        {location.name}, {location.country}
+                      </option>
+                    ))
+                  )}
                 </select>
-              )}
+              )} */}
+              </div>
 
               {/* Display current location info */}
               {useCurrentLocation && userCoordinates && (
