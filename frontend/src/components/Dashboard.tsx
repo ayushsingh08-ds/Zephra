@@ -100,8 +100,6 @@ interface DashboardData {
   location_info?: LocationInfo;
 }
 
-
-
 const Dashboard: React.FC = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
@@ -180,21 +178,81 @@ const Dashboard: React.FC = () => {
   const fetchAvailableLocations = async () => {
     // Set default locations immediately
     const defaultLocations = [
-      { name: "New York", lat: 40.7128, lon: -74.0060, country: "USA", timezone: "America/New_York" },
-      { name: "Los Angeles", lat: 34.0522, lon: -118.2437, country: "USA", timezone: "America/Los_Angeles" },
-      { name: "London", lat: 51.5074, lon: -0.1278, country: "UK", timezone: "Europe/London" },
-      { name: "Tokyo", lat: 35.6762, lon: 139.6503, country: "Japan", timezone: "Asia/Tokyo" },
-      { name: "Sydney", lat: -33.8688, lon: 151.2093, country: "Australia", timezone: "Australia/Sydney" },
-      { name: "Delhi", lat: 28.7041, lon: 77.1025, country: "India", timezone: "Asia/Kolkata" },
-      { name: "Berlin", lat: 52.5200, lon: 13.4050, country: "Germany", timezone: "Europe/Berlin" },
-      { name: "Mumbai", lat: 19.0760, lon: 72.8777, country: "India", timezone: "Asia/Kolkata" },
-      { name: "Paris", lat: 48.8566, lon: 2.3522, country: "France", timezone: "Europe/Paris" },
-      { name: "Singapore", lat: 1.3521, lon: 103.8198, country: "Singapore", timezone: "Asia/Singapore" }
+      {
+        name: "New York",
+        lat: 40.7128,
+        lon: -74.006,
+        country: "USA",
+        timezone: "America/New_York",
+      },
+      {
+        name: "Los Angeles",
+        lat: 34.0522,
+        lon: -118.2437,
+        country: "USA",
+        timezone: "America/Los_Angeles",
+      },
+      {
+        name: "London",
+        lat: 51.5074,
+        lon: -0.1278,
+        country: "UK",
+        timezone: "Europe/London",
+      },
+      {
+        name: "Tokyo",
+        lat: 35.6762,
+        lon: 139.6503,
+        country: "Japan",
+        timezone: "Asia/Tokyo",
+      },
+      {
+        name: "Sydney",
+        lat: -33.8688,
+        lon: 151.2093,
+        country: "Australia",
+        timezone: "Australia/Sydney",
+      },
+      {
+        name: "Delhi",
+        lat: 28.7041,
+        lon: 77.1025,
+        country: "India",
+        timezone: "Asia/Kolkata",
+      },
+      {
+        name: "Berlin",
+        lat: 52.52,
+        lon: 13.405,
+        country: "Germany",
+        timezone: "Europe/Berlin",
+      },
+      {
+        name: "Mumbai",
+        lat: 19.076,
+        lon: 72.8777,
+        country: "India",
+        timezone: "Asia/Kolkata",
+      },
+      {
+        name: "Paris",
+        lat: 48.8566,
+        lon: 2.3522,
+        country: "France",
+        timezone: "Europe/Paris",
+      },
+      {
+        name: "Singapore",
+        lat: 1.3521,
+        lon: 103.8198,
+        country: "Singapore",
+        timezone: "Asia/Singapore",
+      },
     ];
     setLocations(defaultLocations);
 
     try {
-      const response = await fetch("http://localhost:5000/api/locations");
+      const response = await fetch("https://zephra.onrender.com/api/locations");
       if (response.ok) {
         const locationData = await response.json();
         setLocations(locationData.locations || defaultLocations);
@@ -211,7 +269,7 @@ const Dashboard: React.FC = () => {
       setError(null);
 
       const response = await fetch(
-        `http://localhost:5000/api/dashboard?location=${encodeURIComponent(
+        `https://zephra.onrender.com/api/dashboard?location=${encodeURIComponent(
           selectedLocation
         )}`
       );
@@ -512,7 +570,8 @@ const Dashboard: React.FC = () => {
                   onChange={(e) => setSelectedLocation(e.target.value)}
                   className="location-name"
                   style={{
-                    background: "linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))",
+                    background:
+                      "linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))",
                     backdropFilter: "blur(10px)",
                     border: "1px solid rgba(255, 255, 255, 0.2)",
                     borderRadius: "12px",
@@ -526,7 +585,7 @@ const Dashboard: React.FC = () => {
                     boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
                     outline: "none",
                     transition: "all 0.3s ease",
-                    fontFamily: "Montserrat, sans-serif"
+                    fontFamily: "Montserrat, sans-serif",
                   }}
                   onFocus={(e) => {
                     e.target.style.borderColor = "rgba(255, 255, 255, 0.4)";
@@ -538,13 +597,13 @@ const Dashboard: React.FC = () => {
                   }}
                 >
                   {locations.map((location) => (
-                    <option 
-                      key={location.name} 
+                    <option
+                      key={location.name}
                       value={location.name}
                       style={{
                         background: "#1976d2",
                         color: "white",
-                        padding: "8px"
+                        padding: "8px",
                       }}
                     >
                       {location.name}, {location.country}
@@ -582,51 +641,50 @@ const Dashboard: React.FC = () => {
 
             <div className="location-selector">
               <div className="loc">
-              <label htmlFor="location-select">Location:</label>
+                <label htmlFor="location-select">Location:</label>
 
-              {/* Current Location Toggle */}
-              <button
-                className={`current-location-btn ${
-                  useCurrentLocation ? "active" : ""
-                }`}
-                onClick={() => setUseCurrentLocation(!useCurrentLocation)}
-                title={
-                  useCurrentLocation
-                    ? "Using current location"
-                    : "Use my current location"
-                }
-                style={{
-                  padding: "8px 16px",
-                  marginLeft: "10px",
-                  borderRadius: "8px",
-                  border: useCurrentLocation
-                    ? "2px solid #1976d2"
-                    : "2px solid rgba(25, 118, 210, 0.3)",
-                  background: useCurrentLocation
-                    ? "linear-gradient(135deg, #1976d2, #42a5f5)"
-                    : "linear-gradient(135deg, #1976d2, #42a5f5)",
-                  color: useCurrentLocation ? "white" : "white",
-                  cursor: "pointer",
-                  fontWeight: "600",
-                  fontSize: "0.85rem",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  transition: "all 0.3s ease",
-                  boxShadow: useCurrentLocation
-                    ? "0 4px 12px rgba(25, 118, 210, 0.3)"
-                    : "0 2px 6px rgba(0, 0, 0, 0.1)",
-                }}
-              >
-                {" "}
-                {useCurrentLocation
-                  ? "Current Location"
-                  : "Use Current Location"}
-              </button>
+                {/* Current Location Toggle */}
+                <button
+                  className={`current-location-btn ${
+                    useCurrentLocation ? "active" : ""
+                  }`}
+                  onClick={() => setUseCurrentLocation(!useCurrentLocation)}
+                  title={
+                    useCurrentLocation
+                      ? "Using current location"
+                      : "Use my current location"
+                  }
+                  style={{
+                    padding: "8px 16px",
+                    marginLeft: "10px",
+                    borderRadius: "8px",
+                    border: useCurrentLocation
+                      ? "2px solid #1976d2"
+                      : "2px solid rgba(25, 118, 210, 0.3)",
+                    background: useCurrentLocation
+                      ? "linear-gradient(135deg, #1976d2, #42a5f5)"
+                      : "linear-gradient(135deg, #1976d2, #42a5f5)",
+                    color: useCurrentLocation ? "white" : "white",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    fontSize: "0.85rem",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    transition: "all 0.3s ease",
+                    boxShadow: useCurrentLocation
+                      ? "0 4px 12px rgba(25, 118, 210, 0.3)"
+                      : "0 2px 6px rgba(0, 0, 0, 0.1)",
+                  }}
+                >
+                  {" "}
+                  {useCurrentLocation
+                    ? "Current Location"
+                    : "Use Current Location"}
+                </button>
 
-
-              {/* Manual Location Selector */}
-              {/* {!useCurrentLocation && (
+                {/* Manual Location Selector */}
+                {/* {!useCurrentLocation && (
                 <select
                   id="location-select"
                   value={selectedLocation}
@@ -708,14 +766,14 @@ const Dashboard: React.FC = () => {
               label: "Air Quality",
               icon: (
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                  <circle cx="7" cy="7" r="1.5" opacity="0.6"/>
-                  <circle cx="17" cy="9" r="1.2" opacity="0.5"/>
-                  <circle cx="9" cy="12" r="1" opacity="0.4"/>
-                  <circle cx="15" cy="15" r="0.8" opacity="0.3"/>
-                  <circle cx="6" cy="15" r="0.6" opacity="0.4"/>
-                  <circle cx="18" cy="16" r="1" opacity="0.5"/>
-                  <circle cx="12" cy="6" r="0.7" opacity="0.3"/>
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                  <circle cx="7" cy="7" r="1.5" opacity="0.6" />
+                  <circle cx="17" cy="9" r="1.2" opacity="0.5" />
+                  <circle cx="9" cy="12" r="1" opacity="0.4" />
+                  <circle cx="15" cy="15" r="0.8" opacity="0.3" />
+                  <circle cx="6" cy="15" r="0.6" opacity="0.4" />
+                  <circle cx="18" cy="16" r="1" opacity="0.5" />
+                  <circle cx="12" cy="6" r="0.7" opacity="0.3" />
                 </svg>
               ),
             },
@@ -733,8 +791,11 @@ const Dashboard: React.FC = () => {
               label: "Health",
               icon: (
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <circle cx="12" cy="12" r="10" fill="currentColor"/>
-                  <path d="M16 11h-3V8c0-.55-.45-1-1-1s-1 .45-1 1v3H8c-.55 0-1 .45-1 1s.45 1 1 1h3v3c0 .55.45 1 1 1s1-.45 1-1v-3h3c.55 0 1-.45 1-1s-.45-1-1-1z" fill="white"/>
+                  <circle cx="12" cy="12" r="10" fill="currentColor" />
+                  <path
+                    d="M16 11h-3V8c0-.55-.45-1-1-1s-1 .45-1 1v3H8c-.55 0-1 .45-1 1s.45 1 1 1h3v3c0 .55.45 1 1 1s1-.45 1-1v-3h3c.55 0 1-.45 1-1s-.45-1-1-1z"
+                    fill="white"
+                  />
                 </svg>
               ),
             },
@@ -1553,7 +1614,8 @@ const Dashboard: React.FC = () => {
                   datasets: [
                     {
                       label: "Predicted AQI",
-                      data: data?.forecast?.map((item) => item.predicted_aqi) || [],
+                      data:
+                        data?.forecast?.map((item) => item.predicted_aqi) || [],
                       borderColor: "#1976d2",
                       backgroundColor: "rgba(25, 118, 210, 0.1)",
                       borderWidth: 3,
@@ -1564,11 +1626,12 @@ const Dashboard: React.FC = () => {
                       pointBorderWidth: 2,
                       pointRadius: 6,
                       pointHoverRadius: 9,
-                      yAxisID: "y"
+                      yAxisID: "y",
                     },
                     {
                       label: "Confidence Level (%)",
-                      data: data?.forecast?.map((item) => item.confidence) || [],
+                      data:
+                        data?.forecast?.map((item) => item.confidence) || [],
                       borderColor: "#4caf50",
                       backgroundColor: "rgba(76, 175, 80, 0.1)",
                       borderWidth: 2,
@@ -1580,16 +1643,19 @@ const Dashboard: React.FC = () => {
                       pointBorderWidth: 1,
                       pointRadius: 4,
                       pointHoverRadius: 7,
-                      yAxisID: "y1"
+                      yAxisID: "y1",
                     },
                     {
                       label: "Air Quality Trend",
-                      data: data?.forecast?.map((item, index) => {
-                        // Calculate trend based on previous values
-                        if (index === 0) return item.predicted_aqi;
-                        const prevAqi = data?.forecast?.[index - 1]?.predicted_aqi || item.predicted_aqi;
-                        return prevAqi + (item.predicted_aqi - prevAqi) * 0.8; // Smoothed trend
-                      }) || [],
+                      data:
+                        data?.forecast?.map((item, index) => {
+                          // Calculate trend based on previous values
+                          if (index === 0) return item.predicted_aqi;
+                          const prevAqi =
+                            data?.forecast?.[index - 1]?.predicted_aqi ||
+                            item.predicted_aqi;
+                          return prevAqi + (item.predicted_aqi - prevAqi) * 0.8; // Smoothed trend
+                        }) || [],
                       borderColor: "#ff9800",
                       backgroundColor: "rgba(255, 152, 0, 0.05)",
                       borderWidth: 2,
@@ -1600,148 +1666,151 @@ const Dashboard: React.FC = () => {
                       pointBorderWidth: 1,
                       pointRadius: 3,
                       pointHoverRadius: 6,
-                      yAxisID: "y"
-                    }
+                      yAxisID: "y",
+                    },
                   ],
                 }}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  aspectRatio: 2.5,
-                  animation: {
-                    duration: 1500,
-                    easing: 'easeInOutQuart'
-                  },
-                  interaction: {
-                    mode: 'index',
-                    intersect: false
-                  },
-                  plugins: {
-                    legend: {
-                      display: true,
-                      position: 'top',
-                      labels: {
-                        color: '#1976d2',
-                        font: {
-                          family: 'Montserrat',
-                          size: 12,
-                          weight: 600
-                        },
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                      }
+                options={
+                  {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    aspectRatio: 2.5,
+                    animation: {
+                      duration: 1500,
+                      easing: "easeInOutQuart",
                     },
-                    tooltip: {
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      titleColor: '#1976d2',
-                      bodyColor: '#666',
-                      borderColor: '#1976d2',
-                      borderWidth: 1,
-                      cornerRadius: 8,
-                      callbacks: {
-                        afterLabel: function(context: any) {
-                          if (context.datasetIndex === 0) {
-                            const aqi = context.parsed.y;
-                            let status = '';
-                            if (aqi <= 50) status = '🟢 Good';
-                            else if (aqi <= 100) status = '🟡 Moderate';
-                            else if (aqi <= 150) status = '🟠 Unhealthy for Sensitive';
-                            else if (aqi <= 200) status = '🔴 Unhealthy';
-                            else status = '🟣 Very Unhealthy';
-                            return `Status: ${status}`;
-                          }
-                          return '';
-                        }
-                      }
-                    }
-                  },
-                  scales: {
-                    x: {
-                      title: {
-                        display: true,
-                        text: 'Forecast Time',
-                        color: '#1976d2',
-                        font: {
-                          family: 'Montserrat',
-                          size: 13,
-                          weight: 700
-                        }
-                      },
-                      ticks: {
-                        color: '#1976d2',
-                        font: {
-                          family: 'Montserrat',
-                          size: 11
-                        }
-                      },
-                      grid: {
-                        color: 'rgba(25, 118, 210, 0.1)',
-                        drawBorder: false
-                      }
+                    interaction: {
+                      mode: "index",
+                      intersect: false,
                     },
-                    y: {
-                      type: 'linear',
-                      display: true,
-                      position: 'left',
-                      title: {
+                    plugins: {
+                      legend: {
                         display: true,
-                        text: 'Air Quality Index (AQI)',
-                        color: '#1976d2',
-                        font: {
-                          family: 'Montserrat',
-                          size: 13,
-                          weight: 700
-                        }
-                      },
-                      ticks: {
-                        color: '#1976d2',
-                        font: {
-                          family: 'Montserrat',
-                          size: 11
+                        position: "top",
+                        labels: {
+                          color: "#1976d2",
+                          font: {
+                            family: "Montserrat",
+                            size: 12,
+                            weight: 600,
+                          },
+                          usePointStyle: true,
+                          pointStyle: "circle",
                         },
-                        callback: function(value: any) {
-                          return Math.round(value);
-                        }
                       },
-                      grid: {
-                        color: 'rgba(25, 118, 210, 0.1)',
-                        drawBorder: false
+                      tooltip: {
+                        backgroundColor: "rgba(255, 255, 255, 0.95)",
+                        titleColor: "#1976d2",
+                        bodyColor: "#666",
+                        borderColor: "#1976d2",
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        callbacks: {
+                          afterLabel: function (context: any) {
+                            if (context.datasetIndex === 0) {
+                              const aqi = context.parsed.y;
+                              let status = "";
+                              if (aqi <= 50) status = "🟢 Good";
+                              else if (aqi <= 100) status = "🟡 Moderate";
+                              else if (aqi <= 150)
+                                status = "🟠 Unhealthy for Sensitive";
+                              else if (aqi <= 200) status = "🔴 Unhealthy";
+                              else status = "🟣 Very Unhealthy";
+                              return `Status: ${status}`;
+                            }
+                            return "";
+                          },
+                        },
                       },
-                      beginAtZero: true
                     },
-                    y1: {
-                      type: 'linear',
-                      display: true,
-                      position: 'right',
-                      title: {
-                        display: true,
-                        text: 'Confidence Level (%)',
-                        color: '#4caf50',
-                        font: {
-                          family: 'Montserrat',
-                          size: 13,
-                          weight: 700
-                        }
-                      },
-                      ticks: {
-                        color: '#4caf50',
-                        font: {
-                          family: 'Montserrat',
-                          size: 11
+                    scales: {
+                      x: {
+                        title: {
+                          display: true,
+                          text: "Forecast Time",
+                          color: "#1976d2",
+                          font: {
+                            family: "Montserrat",
+                            size: 13,
+                            weight: 700,
+                          },
                         },
-                        callback: function(value: any) {
-                          return Math.round(value) + '%';
-                        }
+                        ticks: {
+                          color: "#1976d2",
+                          font: {
+                            family: "Montserrat",
+                            size: 11,
+                          },
+                        },
+                        grid: {
+                          color: "rgba(25, 118, 210, 0.1)",
+                          drawBorder: false,
+                        },
                       },
-                      grid: {
-                        drawOnChartArea: false,
-                        drawBorder: false
+                      y: {
+                        type: "linear",
+                        display: true,
+                        position: "left",
+                        title: {
+                          display: true,
+                          text: "Air Quality Index (AQI)",
+                          color: "#1976d2",
+                          font: {
+                            family: "Montserrat",
+                            size: 13,
+                            weight: 700,
+                          },
+                        },
+                        ticks: {
+                          color: "#1976d2",
+                          font: {
+                            family: "Montserrat",
+                            size: 11,
+                          },
+                          callback: function (value: any) {
+                            return Math.round(value);
+                          },
+                        },
+                        grid: {
+                          color: "rgba(25, 118, 210, 0.1)",
+                          drawBorder: false,
+                        },
+                        beginAtZero: true,
                       },
-                      min: 0,
-                      max: 100
-                    }
-                  }
-                } as ChartOptions<'line'>}
+                      y1: {
+                        type: "linear",
+                        display: true,
+                        position: "right",
+                        title: {
+                          display: true,
+                          text: "Confidence Level (%)",
+                          color: "#4caf50",
+                          font: {
+                            family: "Montserrat",
+                            size: 13,
+                            weight: 700,
+                          },
+                        },
+                        ticks: {
+                          color: "#4caf50",
+                          font: {
+                            family: "Montserrat",
+                            size: 11,
+                          },
+                          callback: function (value: any) {
+                            return Math.round(value) + "%";
+                          },
+                        },
+                        grid: {
+                          drawOnChartArea: false,
+                          drawBorder: false,
+                        },
+                        min: 0,
+                        max: 100,
+                      },
+                    },
+                  } as ChartOptions<"line">
+                }
               />
             </div>
           </div>
