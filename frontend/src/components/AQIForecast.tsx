@@ -193,7 +193,7 @@ const AQIForecast: React.FC<AQIForecastProps> = ({
       setError(null);
 
       // Fetch dashboard data which includes ML forecasts
-      let url = endpoints.dashboard;
+      let url = `https://zephra.onrender.com/api/dashboard`;
       if (currentLat !== undefined && currentLon !== undefined) {
         url += `?lat=${currentLat}&lon=${currentLon}`;
       } else {
