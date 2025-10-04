@@ -170,7 +170,7 @@ const Home: React.FC = () => {
             pressure: latestWeather.pressure,
             visibility: latestWeather.visibility
           };
-          console.log('🌤️ Setting weather data:', realWeatherData);
+          console.log(' Setting weather data:', realWeatherData);
           setWeatherData(realWeatherData);
         }
         
@@ -192,7 +192,7 @@ const Home: React.FC = () => {
           });
         }
         
-        console.log('✅ Real data fetched and processed successfully');
+        console.log('Real data fetched and processed successfully');
       } else {
         throw new Error('Invalid data format received from API');
       }
