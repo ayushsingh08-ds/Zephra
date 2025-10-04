@@ -253,7 +253,7 @@ const Dashboard: React.FC = () => {
     setLocations(defaultLocations);
 
     try {
-      const response = await fetch("https://zephra.onrender.com/api/locations");
+      const response = await fetch("/api/locations");
       if (response.ok) {
         const locationData = await response.json();
         setLocations(locationData.locations || defaultLocations);
@@ -270,7 +270,7 @@ const Dashboard: React.FC = () => {
       setError(null);
 
       const response = await fetch(
-        `https://zephra.onrender.com/api/dashboard?location=${encodeURIComponent(
+        `/api/dashboard?location=${encodeURIComponent(
           selectedLocation
         )}`
       );

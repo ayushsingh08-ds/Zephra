@@ -192,8 +192,8 @@ const AQIForecast: React.FC<AQIForecastProps> = ({
       setLoading(true);
       setError(null);
 
-      // Fetch dashboard data which includes ML forecasts
-      let url = `https://zephra.onrender.com/api/dashboard`;
+      // Fetch ML forecast data from dedicated forecast API
+      let url = `https://zephra-ml-api.onrender.com/forecast`;
       if (currentLat !== undefined && currentLon !== undefined) {
         url += `?lat=${currentLat}&lon=${currentLon}`;
       } else {
@@ -208,14 +208,18 @@ const AQIForecast: React.FC<AQIForecastProps> = ({
       const data = await response.json();
 
       // Process forecast data - Full 24 hours
-      if (data.forecast && Array.isArray(data.forecast)) {
+      // Adapt to new API response structure
+      const forecastArray =
+        data.forecast || data.predictions || data.data || [];
+      if (Array.isArray(forecastArray)) {
         const now = new Date();
-        const processedForecast = data.forecast.map(
+        const processedForecast = forecastArray.map(
           (item: any, index: number) => {
             // Use item timestamp if available, otherwise calculate from now
-            const forecastTime = item.timestamp
-              ? new Date(item.timestamp)
-              : new Date(now.getTime() + index * 3600000);
+            const forecastTime =
+              item.timestamp || item.time || item.datetime
+                ? new Date(item.timestamp || item.time || item.datetime)
+                : new Date(now.getTime() + index * 3600000);
 
             const hours = forecastTime.getHours();
             const minutes = forecastTime.getMinutes();
@@ -234,14 +238,25 @@ const AQIForecast: React.FC<AQIForecastProps> = ({
               dayLabel = days[forecastTime.getDay()];
             }
 
+            // Handle different possible field names from ML API
+            const aqiValue =
+              item.predicted_aqi ||
+              item.aqi ||
+              item.prediction ||
+              item.value ||
+              0;
+
             return {
               hour: index + 1,
-              timestamp: item.timestamp || forecastTime.toISOString(),
-              predicted_aqi: item.predicted_aqi,
-              category:
-                item.category || getAQICategory(item.predicted_aqi).name,
+              timestamp:
+                item.timestamp ||
+                item.time ||
+                item.datetime ||
+                forecastTime.toISOString(),
+              predicted_aqi: aqiValue,
+              category: item.category || getAQICategory(aqiValue).name,
               category_level: item.category_level || 0,
-              confidence: item.confidence || 80,
+              confidence: item.confidence || item.confidence_score || 80,
               timeLabel:
                 index === 0
                   ? "Now"
