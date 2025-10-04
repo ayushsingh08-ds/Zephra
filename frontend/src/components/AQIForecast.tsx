@@ -16,6 +16,9 @@ import {
 } from "recharts";
 import "./AQIForecast_School.css";
 
+// API Configuration
+const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'https://zephra.onrender.com';
+
 interface ForecastData {
   hour: number;
   timestamp: string;
@@ -192,7 +195,7 @@ const AQIForecast: React.FC<AQIForecastProps> = ({
       setError(null);
 
       // Fetch dashboard data which includes ML forecasts
-      let url = `http://localhost:5000/api/dashboard`;
+      let url = `${API_BASE_URL}/api/dashboard`;
       if (currentLat !== undefined && currentLon !== undefined) {
         url += `?lat=${currentLat}&lon=${currentLon}`;
       } else {
