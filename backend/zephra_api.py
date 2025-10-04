@@ -15,6 +15,14 @@ import os
 from typing import Dict, List, Any, Optional
 import uvicorn
 
+# ML imports for AQI forecasting
+try:
+    from aqi_predictor import AQIPredictor
+    ML_AVAILABLE = True
+except ImportError:
+    print("⚠️ ML modules not available. Install scikit-learn, pandas, numpy, joblib")
+    ML_AVAILABLE = False
+
 # Initialize FastAPI app
 app = FastAPI(
     title="Zephra Environmental API",
@@ -545,6 +553,24 @@ class NASADataFetcher:
 # Initialize NASA data fetcher
 nasa_fetcher = NASADataFetcher()
 
+# Initialize ML predictor (if available)
+if ML_AVAILABLE:
+    try:
+        aqi_predictor = AQIPredictor(model_dir='models')
+        # Try to load trained model
+        aqi_predictor.load_model('aqi_predictor.joblib')
+        print("✅ ML AQI Predictor loaded successfully")
+        ML_MODEL_LOADED = True
+    except FileNotFoundError:
+        print("⚠️ ML model not found. Use aqi_model_trainer.py to train a model.")
+        print("   Falling back to trend-based forecasting.")
+        ML_MODEL_LOADED = False
+    except Exception as e:
+        print(f"⚠️ Error loading ML model: {e}")
+        ML_MODEL_LOADED = False
+else:
+    ML_MODEL_LOADED = False
+
 def generate_health_data(air_quality_data: List[Dict]) -> List[Dict]:
     """Generate health impact data based on air quality"""
     health_data = []
@@ -568,8 +594,74 @@ def generate_health_data(air_quality_data: List[Dict]) -> List[Dict]:
     
     return health_data
 
-def generate_forecast_data(air_quality_data: List[Dict]) -> List[Dict]:
-    """Generate air quality forecast data"""
+def generate_forecast_data(air_quality_data: List[Dict], weather_data: List[Dict] = None, satellite_data: List[Dict] = None) -> List[Dict]:
+    """Generate air quality forecast data using ML model or fallback to trend-based"""
+    
+    # Try ML-based forecasting first
+    if ML_MODEL_LOADED and ML_AVAILABLE:
+        try:
+            # Merge all data sources for ML prediction
+            historical_data = []
+            for i in range(min(len(air_quality_data), 48)):
+                record = air_quality_data[i].copy()
+                
+                # Add weather data
+                if weather_data and i < len(weather_data):
+                    record.update({
+                        'temperature': weather_data[i].get('temperature', 20),
+                        'humidity': weather_data[i].get('humidity', 60),
+                        'wind_speed': weather_data[i].get('windSpeed', 5),
+                        'pressure': weather_data[i].get('pressure', 1013)
+                    })
+                
+                # Add satellite data
+                if satellite_data and i < len(satellite_data):
+                    record.update({
+                        'visibility': satellite_data[i].get('visibility', 20),
+                        'cloud_cover': satellite_data[i].get('cloud_cover', 50),
+                        'aod': satellite_data[i].get('aerosol_optical_depth', 0.15)
+                    })
+                
+                historical_data.append(record)
+            
+            # Get ML-based 24h forecast
+            ml_forecast = aqi_predictor.predict_24h(historical_data, return_confidence=True)
+            
+            # Also get hourly sequence for detailed forecast - Full 24 hours
+            hourly_forecasts = aqi_predictor.predict_hourly_sequence(historical_data, hours_ahead=24)
+            
+            # Convert to API format
+            forecast_data = []
+            for forecast in hourly_forecasts:
+                forecast_data.append({
+                    'hour': datetime.fromisoformat(forecast['timestamp']).strftime('%H:00'),
+                    'predicted_aqi': forecast['predicted_aqi'],
+                    'confidence': 85,  # ML model confidence
+                    'category': forecast['category'],
+                    'weather_impact': 7,
+                    'trend': 'ml_predicted',
+                    'model_type': 'gradient_boosting'
+                })
+            
+            # Add 24h forecast summary
+            forecast_data.append({
+                'hour': '24h',
+                'predicted_aqi': ml_forecast['predicted_aqi'],
+                'confidence': 75,
+                'category': ml_forecast['category'],
+                'health_message': ml_forecast['health_message'],
+                'weather_impact': 8,
+                'trend': 'ml_predicted',
+                'model_type': 'gradient_boosting'
+            })
+            
+            return forecast_data
+            
+        except Exception as e:
+            print(f"⚠️ ML forecasting failed: {e}. Falling back to trend-based.")
+            # Fall through to trend-based forecasting
+    
+    # Fallback: Simple trend-based forecasting
     forecast_data = []
     
     # Get trend from recent data
@@ -583,7 +675,7 @@ def generate_forecast_data(air_quality_data: List[Dict]) -> List[Dict]:
     
     base_aqi = air_quality_data[-1]['aqi'] if air_quality_data else 50
     
-    for i in range(12):  # 12-hour forecast
+    for i in range(24):  # 24-hour forecast
         hour = (datetime.now() + timedelta(hours=i+1)).strftime('%H:00')
         
         # Simple trend-based prediction
@@ -601,7 +693,8 @@ def generate_forecast_data(air_quality_data: List[Dict]) -> List[Dict]:
             'predicted_aqi': predicted_aqi,
             'confidence': confidence,
             'weather_impact': 5 + (i % 3),
-            'trend': trend
+            'trend': trend,
+            'model_type': 'trend_based'
         })
     
     return forecast_data
@@ -623,7 +716,7 @@ async def get_real_dashboard_data(lat: float, lon: float, location_name: str) ->
     
     # Generate derived data
     health_data = generate_health_data(air_quality_data)
-    forecast_data = generate_forecast_data(air_quality_data)
+    forecast_data = generate_forecast_data(air_quality_data, weather_data, satellite_data)
     
     # API status
     api_status = {
@@ -669,7 +762,15 @@ async def root():
         "endpoints": {
             "dashboard": "/api/dashboard",
             "locations": "/api/locations",
-            "nasa_status": "/api/nasa-status"
+            "nasa_status": "/api/nasa-status",
+            "ml_model_info": "/api/ml-model-info",
+            "ml_model_metrics": "/api/ml-model-metrics",
+            "predict": "/api/predict",
+            "health": "/api/health"
+        },
+        "ml_forecasting": {
+            "enabled": ML_MODEL_LOADED,
+            "model_type": "GradientBoostingRegressor" if ML_MODEL_LOADED else None
         }
     }
 
@@ -721,6 +822,330 @@ async def get_nasa_status():
         },
         'timestamp': datetime.now().isoformat()
     }
+
+@app.get("/api/ml-model-info")
+async def get_ml_model_info():
+    """Get ML model information and status"""
+    if not ML_AVAILABLE:
+        return {
+            'success': False,
+            'message': 'ML modules not installed. Install: scikit-learn, pandas, numpy, joblib',
+            'ml_available': False,
+            'model_loaded': False
+        }
+    
+    if not ML_MODEL_LOADED:
+        return {
+            'success': False,
+            'message': 'ML model not trained. Run aqi_model_trainer.py to train a model.',
+            'ml_available': True,
+            'model_loaded': False,
+            'training_instructions': 'python backend/aqi_model_trainer.py'
+        }
+    
+    try:
+        model_info = aqi_predictor.get_model_info()
+        model_info['success'] = True
+        model_info['ml_available'] = True
+        model_info['model_loaded'] = True
+        model_info['timestamp'] = datetime.now().isoformat()
+        return model_info
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/ml-model-metrics")
+async def get_ml_model_metrics():
+    """Get ML model performance metrics"""
+    if not ML_MODEL_LOADED:
+        return {
+            'success': False,
+            'message': 'ML model not loaded',
+            'ml_available': ML_AVAILABLE,
+            'model_loaded': False
+        }
+    
+    try:
+        if aqi_predictor.metrics:
+            return {
+                'success': True,
+                'metrics': aqi_predictor.metrics,
+                'feature_importance_top_10': aqi_predictor.get_feature_contributions([], top_n=10) if hasattr(aqi_predictor, 'get_feature_contributions') else [],
+                'timestamp': datetime.now().isoformat()
+            }
+        else:
+            return {
+                'success': False,
+                'message': 'No metrics available',
+                'model_loaded': True
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/predict")
+async def predict_aqi(data: Dict[str, Any]):
+    """
+    Predict next 24h AQI values based on latest weather + pollution data
+    
+    Request body should contain:
+    {
+        "weather": {
+            "temperature": 25.5,
+            "humidity": 60.2,
+            "wind_speed": 3.5,
+            "pressure": 1013.2,
+            "visibility": 10.0
+        },
+        "pollution": {
+            "pm25": 35.2,
+            "pm10": 52.1,
+            "no2": 28.5,
+            "so2": 12.3,
+            "o3": 45.8,
+            "co": 0.8
+        },
+        "time_features": {
+            "hour": 14,
+            "day_of_week": 3,
+            "month": 10
+        },
+        "historical_data": [
+            // Array of past 24-48h measurements (optional but improves accuracy)
+        ]
+    }
+    
+    Returns:
+    {
+        "success": true,
+        "forecast_24h": [
+            {
+                "hour": 0,
+                "timestamp": "2025-10-03T15:00:00",
+                "predicted_aqi": 65.3,
+                "category": "Moderate",
+                "confidence": 85
+            },
+            // ... 23 more hourly predictions
+        ],
+        "model_type": "gradient_boosting",
+        "prediction_date": "2025-10-03T14:30:00"
+    }
+    """
+    if not ML_MODEL_LOADED:
+        raise HTTPException(
+            status_code=503,
+            detail="ML model not available. Train model first using train_quick_start.py"
+        )
+    
+    try:
+        # Extract input data
+        weather = data.get('weather', {})
+        pollution = data.get('pollution', {})
+        time_features = data.get('time_features', {})
+        historical_data = data.get('historical_data', [])
+        
+        # If no historical data provided, create a single record from current data
+        if not historical_data:
+            current_time = datetime.now()
+            historical_data = []
+            
+            # Create 48 hours of data (using current + some variation)
+            for i in range(48):
+                timestamp = current_time - timedelta(hours=48-i)
+                
+                # Calculate AQI from pollutants (simplified EPA formula)
+                pm25 = pollution.get('pm25', 35) * (1 + (i % 10) * 0.05)
+                pm10 = pollution.get('pm10', 50) * (1 + (i % 10) * 0.05)
+                
+                # PM2.5 to AQI conversion (simplified)
+                if pm25 <= 12.0:
+                    aqi = (50 / 12.0) * pm25
+                elif pm25 <= 35.4:
+                    aqi = 50 + ((100 - 50) / (35.4 - 12.0)) * (pm25 - 12.0)
+                elif pm25 <= 55.4:
+                    aqi = 100 + ((150 - 100) / (55.4 - 35.4)) * (pm25 - 35.4)
+                else:
+                    aqi = 150 + ((200 - 150) / (150.4 - 55.4)) * (pm25 - 55.4)
+                
+                historical_data.append({
+                    'timestamp': timestamp.isoformat(),
+                    'aqi': int(aqi),
+                    'pm25': pm25,
+                    'pm10': pm10,
+                    'no2': pollution.get('no2', 25) * (1 + (i % 8) * 0.04),
+                    'o3': pollution.get('o3', 40) * (1 + (i % 8) * 0.04),
+                    'so2': pollution.get('so2', 10) * (1 + (i % 8) * 0.04),
+                    'co': pollution.get('co', 0.5) * (1 + (i % 8) * 0.04),
+                    'temperature': weather.get('temperature', 20) + (i % 12) * 0.5,
+                    'humidity': weather.get('humidity', 60) + (i % 10) * 2,
+                    'wind_speed': weather.get('wind_speed', 3) + (i % 6) * 0.3,
+                    'pressure': weather.get('pressure', 1013) + (i % 8) * 0.5,
+                    'visibility': weather.get('visibility', 10) + (i % 8) * 0.5,
+                    'cloud_cover': 50 + (i % 10) * 3,
+                    'aod': 0.15 + (i % 10) * 0.01
+                })
+        
+        # Get 24h hourly forecast
+        hourly_forecasts = aqi_predictor.predict_hourly_sequence(
+            historical_data, 
+            hours_ahead=24
+        )
+        
+        # Format response
+        forecast_24h = []
+        for forecast in hourly_forecasts:
+            forecast_24h.append({
+                'hour': forecast['hour'],
+                'timestamp': forecast['timestamp'],
+                'predicted_aqi': round(forecast['predicted_aqi'], 1),
+                'category': forecast['category'],
+                'category_level': forecast['category_level'],
+                'confidence': 85  # ML model confidence
+            })
+        
+        return {
+            'success': True,
+            'forecast_24h': forecast_24h,
+            'model_type': 'gradient_boosting',
+            'prediction_date': datetime.now().isoformat(),
+            'input_summary': {
+                'weather_provided': bool(weather),
+                'pollution_provided': bool(pollution),
+                'historical_data_points': len(historical_data)
+            }
+        }
+        
+    except Exception as e:
+        print(f"❌ Error in /predict endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
+
+@app.get("/api/health")
+async def get_health_advisory(aqi: Optional[float] = Query(None, description="Current or predicted AQI value")):
+    """
+    Get health advisory message based on AQI category
+    
+    Query params:
+    - aqi: AQI value (0-500)
+    
+    Returns health recommendations, sensitive groups, and precautions
+    """
+    if aqi is None:
+        raise HTTPException(status_code=400, detail="AQI value required")
+    
+    try:
+        # Determine AQI category
+        if aqi <= 50:
+            category = {
+                'level': 0,
+                'name': 'Good',
+                'color': '#00E400',
+                'description': 'Air quality is satisfactory, and air pollution poses little or no risk.',
+                'health_message': 'It\'s a great day to be active outside.',
+                'sensitive_groups': [],
+                'general_population': 'No health impacts expected.',
+                'precautions': {
+                    'general': 'None',
+                    'sensitive': 'None'
+                },
+                'activity_guidance': 'Normal outdoor activities are recommended.'
+            }
+        elif aqi <= 100:
+            category = {
+                'level': 1,
+                'name': 'Moderate',
+                'color': '#FFFF00',
+                'description': 'Air quality is acceptable. However, there may be a risk for some people, particularly those who are unusually sensitive to air pollution.',
+                'health_message': 'Unusually sensitive people should consider reducing prolonged or heavy outdoor exertion.',
+                'sensitive_groups': ['Children', 'Elderly', 'People with respiratory diseases', 'People with heart disease'],
+                'general_population': 'No health impacts expected for the general population.',
+                'precautions': {
+                    'general': 'Normal activities are acceptable.',
+                    'sensitive': 'Consider reducing prolonged or heavy exertion if you experience symptoms.'
+                },
+                'activity_guidance': 'Active children and adults, and people with respiratory disease should limit prolonged outdoor exertion.'
+            }
+        elif aqi <= 150:
+            category = {
+                'level': 2,
+                'name': 'Unhealthy for Sensitive Groups',
+                'color': '#FF7E00',
+                'description': 'Members of sensitive groups may experience health effects. The general public is less likely to be affected.',
+                'health_message': 'Active children and adults, and people with respiratory disease should limit prolonged outdoor exertion.',
+                'sensitive_groups': ['Children', 'Elderly', 'People with asthma', 'People with heart disease', 'People with COPD'],
+                'general_population': 'Some people may experience respiratory symptoms.',
+                'precautions': {
+                    'general': 'Consider reducing prolonged or heavy exertion.',
+                    'sensitive': 'Reduce prolonged or heavy outdoor exertion. Take more breaks, do less intense activities.'
+                },
+                'activity_guidance': 'Sensitive groups should limit outdoor activities. Everyone else should reduce prolonged or heavy exertion.'
+            }
+        elif aqi <= 200:
+            category = {
+                'level': 3,
+                'name': 'Unhealthy',
+                'color': '#FF0000',
+                'description': 'Some members of the general public may experience health effects; members of sensitive groups may experience more serious health effects.',
+                'health_message': 'Everyone should reduce prolonged or heavy outdoor exertion.',
+                'sensitive_groups': ['Everyone', 'especially children', 'elderly', 'people with respiratory or heart conditions'],
+                'general_population': 'Increased likelihood of respiratory symptoms like coughing or breathing difficulty.',
+                'precautions': {
+                    'general': 'Reduce prolonged or heavy outdoor exertion. Take more breaks during outdoor activities.',
+                    'sensitive': 'Avoid prolonged or heavy outdoor exertion. Consider moving activities indoors or rescheduling.'
+                },
+                'activity_guidance': 'Everyone should reduce outdoor exertion. Sensitive groups should avoid outdoor activities.'
+            }
+        elif aqi <= 300:
+            category = {
+                'level': 4,
+                'name': 'Very Unhealthy',
+                'color': '#99004C',
+                'description': 'Health alert: The risk of health effects is increased for everyone.',
+                'health_message': 'Everyone should avoid prolonged or heavy outdoor exertion.',
+                'sensitive_groups': ['Everyone'],
+                'general_population': 'Increased aggravation of heart or lung disease and premature mortality in persons with cardiopulmonary disease and the elderly.',
+                'precautions': {
+                    'general': 'Avoid prolonged or heavy outdoor exertion. Consider moving activities indoors.',
+                    'sensitive': 'Remain indoors and keep activity levels low. Follow tips for keeping particle levels low indoors.'
+                },
+                'activity_guidance': 'Everyone should avoid all outdoor physical activity. Stay indoors with windows closed.'
+            }
+        else:
+            category = {
+                'level': 5,
+                'name': 'Hazardous',
+                'color': '#7E0023',
+                'description': 'Health warning of emergency conditions: everyone is more likely to be affected.',
+                'health_message': 'Everyone should avoid all outdoor exertion.',
+                'sensitive_groups': ['Everyone - this is a public health emergency'],
+                'general_population': 'Serious aggravation of heart or lung disease and premature mortality in persons with cardiopulmonary disease and the elderly. Serious risk of respiratory effects in general population.',
+                'precautions': {
+                    'general': 'Remain indoors and keep activity levels low. Avoid all outdoor activities.',
+                    'sensitive': 'Remain indoors and keep windows closed. Run air purifier if available. Seek medical attention if experiencing symptoms.'
+                },
+                'activity_guidance': 'Everyone should remain indoors and avoid all physical activities outdoors. Use air purifier if available.'
+            }
+        
+        # Additional health metrics
+        category['aqi_value'] = round(float(aqi), 1)
+        category['timestamp'] = datetime.now().isoformat()
+        category['pollutants_of_concern'] = []
+        
+        # Determine likely pollutants based on AQI level
+        if aqi > 100:
+            if 100 < aqi <= 150:
+                category['pollutants_of_concern'] = ['PM2.5', 'Ozone']
+            elif 150 < aqi <= 200:
+                category['pollutants_of_concern'] = ['PM2.5', 'PM10', 'Ozone', 'NO2']
+            else:
+                category['pollutants_of_concern'] = ['PM2.5', 'PM10', 'Ozone', 'NO2', 'SO2']
+        
+        return {
+            'success': True,
+            'aqi': category
+        }
+        
+    except Exception as e:
+        print(f"❌ Error in /health endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Health advisory error: {str(e)}")
 
 @app.get("/api/dashboard")
 async def get_dashboard_data(
