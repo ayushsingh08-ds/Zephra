@@ -781,6 +781,37 @@ async def root():
         }
     }
 
+# Add HEAD request handlers for health checks
+@app.head("/")
+async def head_root():
+    """HEAD request handler for root - Render health check"""
+    return
+
+@app.get("/health")
+async def health_check():
+    """Simple health check endpoint for deployment platforms"""
+    return {
+        "status": "healthy", 
+        "timestamp": datetime.now().isoformat(),
+        "service": "zephra-api",
+        "version": "2.0.0"
+    }
+
+@app.head("/health")
+async def head_health():
+    """HEAD request handler for health endpoint"""
+    return
+
+@app.get("/ping")
+async def ping():
+    """Simple ping endpoint"""
+    return {"ping": "pong", "timestamp": datetime.now().isoformat()}
+
+@app.head("/ping") 
+async def head_ping():
+    """HEAD request handler for ping endpoint"""
+    return
+
 @app.get("/api/locations")
 async def get_available_locations():
     """Get list of available monitoring locations"""
@@ -1224,17 +1255,20 @@ async def startup_event():
     """Initialize services on startup"""
     global ML_MODEL_LOADED, aqi_predictor, data_fetcher
     
+    # Get current port from environment (Render uses PORT=10000)
+    current_port = os.getenv('PORT', '10000')
+    
     # Print startup banner
     print("\n" + "="*60)
     print("🚀 Starting Zephra FastAPI Backend Server...")
     print("📊 REAL NASA Data with Authentication Token!")
     print("🌍 Real-time Environmental Monitoring")
     print("="*60)
-    print(f"🌐 Server starting on port 5000")
-    print(f"🔧 Environment: Development")
-    print(f"🛰️ API Base URL: http://localhost:5000")
-    print(f"📊 Dashboard endpoint: http://localhost:5000/api/dashboard")
-    print(f"🌍 Locations endpoint: http://localhost:5000/api/locations")
+    print(f"🌐 Server starting on port {current_port}")
+    print(f"🔧 Environment: {'Production' if os.getenv('DEBUG', 'false').lower() == 'false' else 'Development'}")
+    print(f"🛰️ API Base URL: http://0.0.0.0:{current_port}")
+    print(f"📊 Dashboard endpoint: http://0.0.0.0:{current_port}/api/dashboard")
+    print(f"🌍 Locations endpoint: http://0.0.0.0:{current_port}/api/locations")
     print("="*60)
     
     # Validate NASA token
@@ -1275,7 +1309,7 @@ async def startup_event():
     print(f"   TEMPO API: {NASA_TEMPO_BASE}")
     print(f"   MERRA-2 API: {NASA_MERRA2_BASE}")
     print(f"   MODIS API: {NASA_MODIS_BASE}")
-    print(f"   NASA Status endpoint: http://localhost:5000/api/nasa-status")
+    print(f"   NASA Status endpoint: http://0.0.0.0:{current_port}/api/nasa-status")
     print("="*60)
     if NASA_TOKEN:
         print("✅ NASA TOKEN AUTHENTICATED - REAL DATA ACCESS ENABLED")
@@ -1286,7 +1320,7 @@ async def startup_event():
 if __name__ == "__main__":
     # Get configuration from environment
     host = os.getenv('HOST', '0.0.0.0')  # Use 0.0.0.0 for deployment compatibility
-    port = int(os.getenv('PORT', '5000'))
+    port = int(os.getenv('PORT', '10000'))  # Match Render's default port
     debug = os.getenv('DEBUG', 'false').lower() == 'true'  # Default to false for production
     log_level = os.getenv('LOG_LEVEL', 'info').lower()
     

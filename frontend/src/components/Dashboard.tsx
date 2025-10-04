@@ -16,6 +16,7 @@ import {
 } from "chart.js";
 import AQIForecast from "./AQIForecast";
 import "./Dashboard.css";
+import { endpoints } from "../config/api";
 
 ChartJS.register(
   CategoryScale,
