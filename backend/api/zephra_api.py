@@ -781,6 +781,37 @@ async def root():
         }
     }
 
+# Add HEAD request handlers for health checks
+@app.head("/")
+async def head_root():
+    """HEAD request handler for root - Render health check"""
+    return
+
+@app.get("/health")
+async def health_check():
+    """Simple health check endpoint for deployment platforms"""
+    return {
+        "status": "healthy", 
+        "timestamp": datetime.now().isoformat(),
+        "service": "zephra-api",
+        "version": "2.0.0"
+    }
+
+@app.head("/health")
+async def head_health():
+    """HEAD request handler for health endpoint"""
+    return
+
+@app.get("/ping")
+async def ping():
+    """Simple ping endpoint"""
+    return {"ping": "pong", "timestamp": datetime.now().isoformat()}
+
+@app.head("/ping") 
+async def head_ping():
+    """HEAD request handler for ping endpoint"""
+    return
+
 @app.get("/api/locations")
 async def get_available_locations():
     """Get list of available monitoring locations"""
