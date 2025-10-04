@@ -38,7 +38,7 @@ app = FastAPI(
 )
 
 # Add CORS middleware
-cors_origins = os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
+cors_origins = os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000,https://*.onrender.com').split(',')
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
@@ -1285,9 +1285,9 @@ async def startup_event():
 
 if __name__ == "__main__":
     # Get configuration from environment
-    host = os.getenv('HOST', 'localhost')  # Changed from 0.0.0.0 to localhost
+    host = os.getenv('HOST', '0.0.0.0')  # Use 0.0.0.0 for deployment compatibility
     port = int(os.getenv('PORT', '5000'))
-    debug = os.getenv('DEBUG', 'true').lower() == 'true'
+    debug = os.getenv('DEBUG', 'false').lower() == 'true'  # Default to false for production
     log_level = os.getenv('LOG_LEVEL', 'info').lower()
     
     uvicorn.run(
