@@ -270,9 +270,7 @@ const Dashboard: React.FC = () => {
       setError(null);
 
       const response = await fetch(
-        `/api/dashboard?location=${encodeURIComponent(
-          selectedLocation
-        )}`
+        `/api/dashboard?location=${encodeURIComponent(selectedLocation)}`
       );
 
       if (!response.ok) {
