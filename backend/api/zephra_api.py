@@ -1224,17 +1224,20 @@ async def startup_event():
     """Initialize services on startup"""
     global ML_MODEL_LOADED, aqi_predictor, data_fetcher
     
+    # Get current port from environment
+    current_port = os.getenv('PORT', '5000')
+    
     # Print startup banner
     print("\n" + "="*60)
     print("🚀 Starting Zephra FastAPI Backend Server...")
     print("📊 REAL NASA Data with Authentication Token!")
     print("🌍 Real-time Environmental Monitoring")
     print("="*60)
-    print(f"🌐 Server starting on port 5000")
-    print(f"🔧 Environment: Development")
-    print(f"🛰️ API Base URL: http://localhost:5000")
-    print(f"📊 Dashboard endpoint: http://localhost:5000/api/dashboard")
-    print(f"🌍 Locations endpoint: http://localhost:5000/api/locations")
+    print(f"🌐 Server starting on port {current_port}")
+    print(f"🔧 Environment: {'Production' if os.getenv('DEBUG', 'false').lower() == 'false' else 'Development'}")
+    print(f"🛰️ API Base URL: http://0.0.0.0:{current_port}")
+    print(f"📊 Dashboard endpoint: http://0.0.0.0:{current_port}/api/dashboard")
+    print(f"🌍 Locations endpoint: http://0.0.0.0:{current_port}/api/locations")
     print("="*60)
     
     # Validate NASA token
@@ -1275,7 +1278,7 @@ async def startup_event():
     print(f"   TEMPO API: {NASA_TEMPO_BASE}")
     print(f"   MERRA-2 API: {NASA_MERRA2_BASE}")
     print(f"   MODIS API: {NASA_MODIS_BASE}")
-    print(f"   NASA Status endpoint: http://localhost:5000/api/nasa-status")
+    print(f"   NASA Status endpoint: http://0.0.0.0:{current_port}/api/nasa-status")
     print("="*60)
     if NASA_TOKEN:
         print("✅ NASA TOKEN AUTHENTICATED - REAL DATA ACCESS ENABLED")
