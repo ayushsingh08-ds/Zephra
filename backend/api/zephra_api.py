@@ -16,6 +16,13 @@ from typing import Dict, List, Any, Optional
 import uvicorn
 
 # ML imports for AQI forecasting
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Set to None initially
+AQIPredictor = None
+
 try:
     from aqi_predictor import AQIPredictor
     ML_AVAILABLE = True
@@ -31,7 +38,7 @@ app = FastAPI(
 )
 
 # Add CORS middleware
-cors_origins = os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
+cors_origins = os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000,https://*.onrender.com').split(',')
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
@@ -49,17 +56,19 @@ except ImportError:
 
 # NASA API Configuration with Real Token from environment
 NASA_TOKEN = os.getenv('NASA_TOKEN')
-if not NASA_TOKEN:
-    print("❌ ERROR: NASA_TOKEN not found in environment variables")
-    print("   Please set NASA_TOKEN in your .env file or environment")
-    raise ValueError("NASA_TOKEN environment variable is required")
+NASA_USERNAME = os.getenv('NASA_USERNAME')
 
-# NASA API Endpoints
+# Initialize global variables
+DATA_FETCHER = None
+
+# Note: Token validation moved to startup function for better error handling
+
+# NASA API Endpoints - Updated to working CMR endpoints
 NASA_EARTHDATA_BASE = "https://cmr.earthdata.nasa.gov/search"
 NASA_GIOVANNI_BASE = "https://giovanni.gsfc.nasa.gov/giovanni"
-NASA_MODIS_BASE = "https://modis.gsfc.nasa.gov/data"
-NASA_TEMPO_BASE = "https://disc.gsfc.nasa.gov/api"
-NASA_MERRA2_BASE = "https://goldsmr4.gesdisc.eosdis.nasa.gov/data/MERRA2"
+NASA_MODIS_BASE = "https://cmr.earthdata.nasa.gov/search/collections"
+NASA_TEMPO_BASE = "https://cmr.earthdata.nasa.gov/search/granules"
+NASA_MERRA2_BASE = "https://cmr.earthdata.nasa.gov/search/granules"
 
 # WAQI Fallback
 WAQI_BASE_URL = "https://api.waqi.info/feed"
@@ -105,12 +114,14 @@ class NASADataFetcher:
     async def get_tempo_air_quality_data(self, session: aiohttp.ClientSession, lat: float, lon: float) -> List[Dict]:
         """Fetch air quality data from NASA TEMPO satellite"""
         try:
-            # TEMPO API for tropospheric air quality
-            tempo_url = f"{NASA_TEMPO_BASE}/collections/TEMPO_NO2_L2/items"
+            # TEMPO API for tropospheric air quality using CMR
+            tempo_url = f"{NASA_TEMPO_BASE}"
             params = {
-                'bbox': f"{lon-0.5},{lat-0.5},{lon+0.5},{lat+0.5}",
-                'datetime': f"{(datetime.now() - timedelta(days=1)).isoformat()}/{datetime.now().isoformat()}",
-                'limit': 24
+                'collection_concept_id': 'C2943881117-LARC_CLOUD',  # TEMPO NO2 collection
+                'bounding_box': f"{lon-0.5},{lat-0.5},{lon+0.5},{lat+0.5}",
+                'temporal': f"{(datetime.now() - timedelta(days=1)).isoformat()},{datetime.now().isoformat()}",
+                'page_size': '24',
+                'format': 'json'
             }
             
             data = await self.fetch_nasa_data(session, tempo_url, params)
@@ -159,12 +170,14 @@ class NASADataFetcher:
     async def get_merra2_weather_data(self, session: aiohttp.ClientSession, lat: float, lon: float) -> List[Dict]:
         """Fetch weather data from NASA MERRA-2"""
         try:
-            # MERRA-2 API for meteorological data
-            merra2_url = f"{NASA_MERRA2_BASE}/collections/M2T1NXSLV.5.12.4/items"
+            # MERRA-2 API for meteorological data using CMR
+            merra2_url = f"{NASA_MERRA2_BASE}"
             params = {
-                'bbox': f"{lon-0.5},{lat-0.5},{lon+0.5},{lat+0.5}",
-                'datetime': f"{(datetime.now() - timedelta(days=1)).isoformat()}/{datetime.now().isoformat()}",
-                'variables': 'T2M,QV2M,U10M,V10M,SLP,PS'
+                'collection_concept_id': 'C1276812863-GES_DISC',  # MERRA-2 collection
+                'bounding_box': f"{lon-0.5},{lat-0.5},{lon+0.5},{lat+0.5}",
+                'temporal': f"{(datetime.now() - timedelta(days=1)).isoformat()},{datetime.now().isoformat()}",
+                'page_size': '24',
+                'format': 'json'
             }
             
             data = await self.fetch_nasa_data(session, merra2_url, params)
@@ -212,12 +225,14 @@ class NASADataFetcher:
     async def get_modis_satellite_data(self, session: aiohttp.ClientSession, lat: float, lon: float) -> List[Dict]:
         """Fetch satellite data from NASA MODIS"""
         try:
-            # MODIS API for satellite observations
-            modis_url = f"{NASA_MODIS_BASE}/collections/MODIS_Terra_AOD/items"
+            # MODIS API for satellite observations using CMR
+            modis_url = f"{NASA_MODIS_BASE}"
             params = {
-                'bbox': f"{lon-1},{lat-1},{lon+1},{lat+1}",
-                'datetime': f"{(datetime.now() - timedelta(days=1)).isoformat()}/{datetime.now().isoformat()}",
-                'limit': 24
+                'collection_concept_id': 'C194001241-LAADS',  # MODIS Terra AOD collection
+                'bounding_box': f"{lon-1},{lat-1},{lon+1},{lat+1}",
+                'temporal': f"{(datetime.now() - timedelta(days=1)).isoformat()},{datetime.now().isoformat()}",
+                'page_size': '24',
+                'format': 'json'
             }
             
             data = await self.fetch_nasa_data(session, modis_url, params)
@@ -553,23 +568,10 @@ class NASADataFetcher:
 # Initialize NASA data fetcher
 nasa_fetcher = NASADataFetcher()
 
-# Initialize ML predictor (if available)
-if ML_AVAILABLE:
-    try:
-        aqi_predictor = AQIPredictor(model_dir='models')
-        # Try to load trained model
-        aqi_predictor.load_model('aqi_predictor.joblib')
-        print("✅ ML AQI Predictor loaded successfully")
-        ML_MODEL_LOADED = True
-    except FileNotFoundError:
-        print("⚠️ ML model not found. Use aqi_model_trainer.py to train a model.")
-        print("   Falling back to trend-based forecasting.")
-        ML_MODEL_LOADED = False
-    except Exception as e:
-        print(f"⚠️ Error loading ML model: {e}")
-        ML_MODEL_LOADED = False
-else:
-    ML_MODEL_LOADED = False
+# Global variables for ML model and data fetcher
+ML_MODEL_LOADED = False
+aqi_predictor = None
+data_fetcher = None
 
 def generate_health_data(air_quality_data: List[Dict]) -> List[Dict]:
     """Generate health impact data based on air quality"""
@@ -594,7 +596,7 @@ def generate_health_data(air_quality_data: List[Dict]) -> List[Dict]:
     
     return health_data
 
-def generate_forecast_data(air_quality_data: List[Dict], weather_data: List[Dict] = None, satellite_data: List[Dict] = None) -> List[Dict]:
+def generate_forecast_data(air_quality_data: List[Dict], weather_data: Optional[List[Dict]] = None, satellite_data: Optional[List[Dict]] = None) -> List[Dict]:
     """Generate air quality forecast data using ML model or fallback to trend-based"""
     
     # Try ML-based forecasting first
@@ -625,10 +627,14 @@ def generate_forecast_data(air_quality_data: List[Dict], weather_data: List[Dict
                 historical_data.append(record)
             
             # Get ML-based 24h forecast
-            ml_forecast = aqi_predictor.predict_24h(historical_data, return_confidence=True)
-            
-            # Also get hourly sequence for detailed forecast - Full 24 hours
-            hourly_forecasts = aqi_predictor.predict_hourly_sequence(historical_data, hours_ahead=24)
+            if aqi_predictor is not None:
+                ml_forecast = aqi_predictor.predict_24h(historical_data, return_confidence=True)
+                
+                # Also get hourly sequence for detailed forecast - Full 24 hours
+                hourly_forecasts = aqi_predictor.predict_hourly_sequence(historical_data, hours_ahead=24)
+            else:
+                ml_forecast = None
+                hourly_forecasts = []
             
             # Convert to API format
             forecast_data = []
@@ -643,17 +649,18 @@ def generate_forecast_data(air_quality_data: List[Dict], weather_data: List[Dict
                     'model_type': 'gradient_boosting'
                 })
             
-            # Add 24h forecast summary
-            forecast_data.append({
-                'hour': '24h',
-                'predicted_aqi': ml_forecast['predicted_aqi'],
-                'confidence': 75,
-                'category': ml_forecast['category'],
-                'health_message': ml_forecast['health_message'],
-                'weather_impact': 8,
-                'trend': 'ml_predicted',
-                'model_type': 'gradient_boosting'
-            })
+            # Add 24h forecast summary if ml_forecast is available
+            if ml_forecast:
+                forecast_data.append({
+                    'hour': '24h',
+                    'predicted_aqi': ml_forecast['predicted_aqi'],
+                    'confidence': 75,
+                    'category': ml_forecast['category'],
+                    'health_message': ml_forecast['health_message'],
+                    'weather_impact': 8,
+                    'trend': 'ml_predicted',
+                    'model_type': 'gradient_boosting'
+                })
             
             return forecast_data
             
@@ -840,16 +847,24 @@ async def get_ml_model_info():
             'message': 'ML model not trained. Run aqi_model_trainer.py to train a model.',
             'ml_available': True,
             'model_loaded': False,
-            'training_instructions': 'python backend/aqi_model_trainer.py'
+            'training_instructions': 'python ../aqi_model_trainer.py'
         }
     
     try:
-        model_info = aqi_predictor.get_model_info()
-        model_info['success'] = True
-        model_info['ml_available'] = True
-        model_info['model_loaded'] = True
-        model_info['timestamp'] = datetime.now().isoformat()
-        return model_info
+        if aqi_predictor is not None:
+            model_info = aqi_predictor.get_model_info()
+            model_info['success'] = True
+            model_info['ml_available'] = True
+            model_info['model_loaded'] = True
+            model_info['timestamp'] = datetime.now().isoformat()
+            return model_info
+        else:
+            return {
+                'success': False,
+                'message': 'AQI predictor not initialized',
+                'ml_available': ML_AVAILABLE,
+                'model_loaded': False
+            }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -865,7 +880,7 @@ async def get_ml_model_metrics():
         }
     
     try:
-        if aqi_predictor.metrics:
+        if aqi_predictor is not None and hasattr(aqi_predictor, 'metrics') and aqi_predictor.metrics:
             return {
                 'success': True,
                 'metrics': aqi_predictor.metrics,
@@ -985,10 +1000,13 @@ async def predict_aqi(data: Dict[str, Any]):
                 })
         
         # Get 24h hourly forecast
-        hourly_forecasts = aqi_predictor.predict_hourly_sequence(
-            historical_data, 
-            hours_ahead=24
-        )
+        if aqi_predictor is not None:
+            hourly_forecasts = aqi_predictor.predict_hourly_sequence(
+                historical_data, 
+                hours_ahead=24
+            )
+        else:
+            hourly_forecasts = []
         
         # Format response
         forecast_24h = []
@@ -1201,9 +1219,12 @@ async def get_dashboard_data(
         print(f"❌ Error in dashboard endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-# Startup message
 @app.on_event("startup")
 async def startup_event():
+    """Initialize services on startup"""
+    global ML_MODEL_LOADED, aqi_predictor, data_fetcher
+    
+    # Print startup banner
     print("\n" + "="*60)
     print("🚀 Starting Zephra FastAPI Backend Server...")
     print("📊 REAL NASA Data with Authentication Token!")
@@ -1215,6 +1236,38 @@ async def startup_event():
     print(f"📊 Dashboard endpoint: http://localhost:5000/api/dashboard")
     print(f"🌍 Locations endpoint: http://localhost:5000/api/locations")
     print("="*60)
+    
+    # Validate NASA token
+    if not NASA_TOKEN:
+        print("❌ ERROR: NASA_TOKEN not found in environment variables")
+        print("   Please set NASA_TOKEN in your .env file or environment")
+        print("   Server will start but NASA data fetching will be limited")
+    else:
+        print("✅ NASA TOKEN configured")
+    
+    # Initialize data fetcher
+    data_fetcher = NASADataFetcher()
+    
+    # Initialize ML predictor (if available)
+    if ML_AVAILABLE and AQIPredictor is not None:
+        try:
+            aqi_predictor = AQIPredictor(model_dir='../models')
+            # Try to load trained model
+            aqi_predictor.load_model('aqi_predictor.joblib')
+            print("✅ ML AQI Predictor loaded successfully")
+            ML_MODEL_LOADED = True
+        except FileNotFoundError:
+            print("⚠️ ML model not found. Use aqi_model_trainer.py to train a model.")
+            print("   Falling back to trend-based forecasting.")
+            ML_MODEL_LOADED = False
+        except Exception as e:
+            print(f"⚠️ Error loading ML model: {e}")
+            ML_MODEL_LOADED = False
+    else:
+        print("⚠️ ML modules not available")
+        ML_MODEL_LOADED = False
+    
+    # Final status
     print("🛰️ NASA REAL DATA STATUS:")
     print(f"   Token configured: {'✅' if NASA_TOKEN else '❌'}")
     print(f"   Username: {os.getenv('NASA_USERNAME', 'Not specified')}")
@@ -1224,14 +1277,17 @@ async def startup_event():
     print(f"   MODIS API: {NASA_MODIS_BASE}")
     print(f"   NASA Status endpoint: http://localhost:5000/api/nasa-status")
     print("="*60)
-    print("✅ NASA TOKEN AUTHENTICATED - REAL DATA ACCESS ENABLED")
+    if NASA_TOKEN:
+        print("✅ NASA TOKEN AUTHENTICATED - REAL DATA ACCESS ENABLED")
+    else:
+        print("⚠️ LIMITED MODE - SET NASA_TOKEN FOR FULL FUNCTIONALITY")
     print("="*60)
 
 if __name__ == "__main__":
     # Get configuration from environment
-    host = os.getenv('HOST', 'localhost')  # Changed from 0.0.0.0 to localhost
+    host = os.getenv('HOST', '0.0.0.0')  # Use 0.0.0.0 for deployment compatibility
     port = int(os.getenv('PORT', '5000'))
-    debug = os.getenv('DEBUG', 'true').lower() == 'true'
+    debug = os.getenv('DEBUG', 'false').lower() == 'true'  # Default to false for production
     log_level = os.getenv('LOG_LEVEL', 'info').lower()
     
     uvicorn.run(

@@ -708,7 +708,14 @@ const Dashboard: React.FC = () => {
               label: "Air Quality",
               icon: (
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M14.48 11.95c.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31-.17 0-.31.14-.31.31 0 .17.14.31.31.31zm-2.98 0c.17 0 .31-.14.31-.31 0-.17-.14-.31-.31-.31-.17 0-.3.14-.3.31 0 .17.13.31.3.31zm-2.99 0c.17 0 .31-.14.31-.31 0-.17-.14-.31-.31-.31-.17 0-.3.14-.3.31 0 .17.13.31.3.31zm7.46-6.5c-.17 0-.31.14-.31.31 0 .17.14.31.31.31.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31zm-2.99 0c-.17 0-.3.14-.3.31 0 .17.13.31.3.31.17 0 .31-.14.31-.31 0-.17-.14-.31-.31-.31zm-2.98 0c-.17 0-.31.14-.31.31 0 .17.14.31.31.31.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31zm7.46 3.25c-.17 0-.31.14-.31.31 0 .17.14.31.31.31.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31zm-2.99 0c-.17 0-.3.14-.3.31 0 .17.13.31.3.31.17 0 .31-.14.31-.31 0-.17-.14-.31-.31-.31zm-2.98 0c-.17 0-.31.14-.31.31 0 .17.14.31.31.31.17 0 .3-.14.3-.31 0-.17-.13-.31-.3-.31z" />
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  <circle cx="7" cy="7" r="1.5" opacity="0.6"/>
+                  <circle cx="17" cy="9" r="1.2" opacity="0.5"/>
+                  <circle cx="9" cy="12" r="1" opacity="0.4"/>
+                  <circle cx="15" cy="15" r="0.8" opacity="0.3"/>
+                  <circle cx="6" cy="15" r="0.6" opacity="0.4"/>
+                  <circle cx="18" cy="16" r="1" opacity="0.5"/>
+                  <circle cx="12" cy="6" r="0.7" opacity="0.3"/>
                 </svg>
               ),
             },
@@ -726,7 +733,8 @@ const Dashboard: React.FC = () => {
               label: "Health",
               icon: (
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12s4.48 10 10 10 10-4.48 10-10zm-2.99-.5c0 3.86-3.13 7-7 7s-7-3.14-7-7 3.13-7 7-7 7 3.14 7 7zm-7-4v2H9.5v3h2.5v2.5h3V12.5H18v-3h-2.5V7h-3z" />
+                  <circle cx="12" cy="12" r="10" fill="currentColor"/>
+                  <path d="M16 11h-3V8c0-.55-.45-1-1-1s-1 .45-1 1v3H8c-.55 0-1 .45-1 1s.45 1 1 1h3v3c0 .55.45 1 1 1s1-.45 1-1v-3h3c.55 0 1-.45 1-1s-.45-1-1-1z" fill="white"/>
                 </svg>
               ),
             },
@@ -1536,45 +1544,205 @@ const Dashboard: React.FC = () => {
               />
             </div>
 
-            {/* Forecast Summary */}
+            {/* Forecast Summary Chart */}
             <div className="chart-container">
-              <h3>Forecast Summary</h3>
-              <div className="forecast-summary">
-                {data?.forecast?.map((item, index) => (
-                  <div key={index} className="forecast-item">
-                    <div className="forecast-time">{item.hour}</div>
-                    <div className="forecast-aqi">
-                      AQI: {Math.round(item.predicted_aqi)}
-                    </div>
-                    <div className="forecast-confidence">
-                      {Math.round(item.confidence)}% confident
-                    </div>
-                    <div
-                      className={`forecast-status ${
-                        item.predicted_aqi <= 50
-                          ? "good"
-                          : item.predicted_aqi <= 100
-                          ? "moderate"
-                          : item.predicted_aqi <= 150
-                          ? "unhealthy-sensitive"
-                          : item.predicted_aqi <= 200
-                          ? "unhealthy"
-                          : "very-unhealthy"
-                      }`}
-                    >
-                      {item.predicted_aqi <= 50
-                        ? "Good"
-                        : item.predicted_aqi <= 100
-                        ? "Moderate"
-                        : item.predicted_aqi <= 150
-                        ? "Unhealthy for Sensitive Groups"
-                        : item.predicted_aqi <= 200
-                        ? "Unhealthy"
-                        : "Very Unhealthy"}
-                    </div>
-                  </div>
-                )) || []}
-              </div>
+              <h3>Comprehensive Forecast Summary</h3>
+              <Line
+                data={{
+                  labels: forecastLabels,
+                  datasets: [
+                    {
+                      label: "Predicted AQI",
+                      data: data?.forecast?.map((item) => item.predicted_aqi) || [],
+                      borderColor: "#1976d2",
+                      backgroundColor: "rgba(25, 118, 210, 0.1)",
+                      borderWidth: 3,
+                      tension: 0.4,
+                      fill: false,
+                      pointBackgroundColor: "#1976d2",
+                      pointBorderColor: "#ffffff",
+                      pointBorderWidth: 2,
+                      pointRadius: 6,
+                      pointHoverRadius: 9,
+                      yAxisID: "y"
+                    },
+                    {
+                      label: "Confidence Level (%)",
+                      data: data?.forecast?.map((item) => item.confidence) || [],
+                      borderColor: "#4caf50",
+                      backgroundColor: "rgba(76, 175, 80, 0.1)",
+                      borderWidth: 2,
+                      borderDash: [5, 5],
+                      tension: 0.4,
+                      fill: false,
+                      pointBackgroundColor: "#4caf50",
+                      pointBorderColor: "#ffffff",
+                      pointBorderWidth: 1,
+                      pointRadius: 4,
+                      pointHoverRadius: 7,
+                      yAxisID: "y1"
+                    },
+                    {
+                      label: "Air Quality Trend",
+                      data: data?.forecast?.map((item, index) => {
+                        // Calculate trend based on previous values
+                        if (index === 0) return item.predicted_aqi;
+                        const prevAqi = data?.forecast?.[index - 1]?.predicted_aqi || item.predicted_aqi;
+                        return prevAqi + (item.predicted_aqi - prevAqi) * 0.8; // Smoothed trend
+                      }) || [],
+                      borderColor: "#ff9800",
+                      backgroundColor: "rgba(255, 152, 0, 0.05)",
+                      borderWidth: 2,
+                      tension: 0.6,
+                      fill: true,
+                      pointBackgroundColor: "#ff9800",
+                      pointBorderColor: "#ffffff",
+                      pointBorderWidth: 1,
+                      pointRadius: 3,
+                      pointHoverRadius: 6,
+                      yAxisID: "y"
+                    }
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  aspectRatio: 2.5,
+                  animation: {
+                    duration: 1500,
+                    easing: 'easeInOutQuart'
+                  },
+                  interaction: {
+                    mode: 'index',
+                    intersect: false
+                  },
+                  plugins: {
+                    legend: {
+                      display: true,
+                      position: 'top',
+                      labels: {
+                        color: '#1976d2',
+                        font: {
+                          family: 'Montserrat',
+                          size: 12,
+                          weight: 600
+                        },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                      }
+                    },
+                    tooltip: {
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      titleColor: '#1976d2',
+                      bodyColor: '#666',
+                      borderColor: '#1976d2',
+                      borderWidth: 1,
+                      cornerRadius: 8,
+                      callbacks: {
+                        afterLabel: function(context: any) {
+                          if (context.datasetIndex === 0) {
+                            const aqi = context.parsed.y;
+                            let status = '';
+                            if (aqi <= 50) status = '🟢 Good';
+                            else if (aqi <= 100) status = '🟡 Moderate';
+                            else if (aqi <= 150) status = '🟠 Unhealthy for Sensitive';
+                            else if (aqi <= 200) status = '🔴 Unhealthy';
+                            else status = '🟣 Very Unhealthy';
+                            return `Status: ${status}`;
+                          }
+                          return '';
+                        }
+                      }
+                    }
+                  },
+                  scales: {
+                    x: {
+                      title: {
+                        display: true,
+                        text: 'Forecast Time',
+                        color: '#1976d2',
+                        font: {
+                          family: 'Montserrat',
+                          size: 13,
+                          weight: 700
+                        }
+                      },
+                      ticks: {
+                        color: '#1976d2',
+                        font: {
+                          family: 'Montserrat',
+                          size: 11
+                        }
+                      },
+                      grid: {
+                        color: 'rgba(25, 118, 210, 0.1)',
+                        drawBorder: false
+                      }
+                    },
+                    y: {
+                      type: 'linear',
+                      display: true,
+                      position: 'left',
+                      title: {
+                        display: true,
+                        text: 'Air Quality Index (AQI)',
+                        color: '#1976d2',
+                        font: {
+                          family: 'Montserrat',
+                          size: 13,
+                          weight: 700
+                        }
+                      },
+                      ticks: {
+                        color: '#1976d2',
+                        font: {
+                          family: 'Montserrat',
+                          size: 11
+                        },
+                        callback: function(value: any) {
+                          return Math.round(value);
+                        }
+                      },
+                      grid: {
+                        color: 'rgba(25, 118, 210, 0.1)',
+                        drawBorder: false
+                      },
+                      beginAtZero: true
+                    },
+                    y1: {
+                      type: 'linear',
+                      display: true,
+                      position: 'right',
+                      title: {
+                        display: true,
+                        text: 'Confidence Level (%)',
+                        color: '#4caf50',
+                        font: {
+                          family: 'Montserrat',
+                          size: 13,
+                          weight: 700
+                        }
+                      },
+                      ticks: {
+                        color: '#4caf50',
+                        font: {
+                          family: 'Montserrat',
+                          size: 11
+                        },
+                        callback: function(value: any) {
+                          return Math.round(value) + '%';
+                        }
+                      },
+                      grid: {
+                        drawOnChartArea: false,
+                        drawBorder: false
+                      },
+                      min: 0,
+                      max: 100
+                    }
+                  }
+                } as ChartOptions<'line'>}
+              />
             </div>
           </div>
         )}
