@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Line, Bar } from 'react-chartjs-2';
+import React, { useState, useEffect } from "react";
+import { Line, Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,9 +12,10 @@ import {
   Tooltip,
   Legend,
   Filler,
-  type ChartOptions
-} from 'chart.js';
-import './Dashboard.css';
+  type ChartOptions,
+} from "chart.js";
+import AQIForecast from "./AQIForecast";
+import "./Dashboard.css";
 
 ChartJS.register(
   CategoryScale,
@@ -102,14 +103,71 @@ interface DashboardData {
 const Dashboard: React.FC = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<string>('New York');
+  const [selectedLocation, setSelectedLocation] = useState<string>("New York");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'weather' | 'air-quality' | 'satellite' | 'health' | 'forecast'>('overview');
+  const [selectedTab, setSelectedTab] = useState<
+    | "overview"
+    | "weather"
+    | "air-quality"
+    | "satellite"
+    | "health"
+    | "forecast"
+    | "ml-forecast"
+  >("overview");
+  const [useCurrentLocation, setUseCurrentLocation] = useState(false);
+  const [userCoordinates, setUserCoordinates] = useState<{
+    lat: number;
+    lon: number;
+  } | null>(null);
+  const [geoLocationName, setGeoLocationName] = useState<string>("");
 
   useEffect(() => {
     fetchAvailableLocations();
   }, []);
+
+  // Get user's current location when useCurrentLocation is enabled
+  useEffect(() => {
+    if (useCurrentLocation && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserCoordinates({ lat: latitude, lon: longitude });
+
+          // Reverse geocode to get location name
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            );
+            const data = await response.json();
+            const locationName =
+              data.address?.city ||
+              data.address?.town ||
+              data.address?.village ||
+              data.display_name.split(",")[0];
+            setGeoLocationName(locationName);
+          } catch (err) {
+            console.error("Error getting location name:", err);
+            setGeoLocationName(
+              `${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°`
+            );
+          }
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          alert(
+            "Unable to get your location. Please enable location services."
+          );
+          setUseCurrentLocation(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000,
+        }
+      );
+    }
+  }, [useCurrentLocation]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -125,7 +183,7 @@ const Dashboard: React.FC = () => {
         setLocations(locationData.locations || []);
       }
     } catch (error) {
-      console.error('Error fetching locations:', error);
+      console.error("Error fetching locations:", error);
     }
   };
 
@@ -139,187 +197,207 @@ const Dashboard: React.FC = () => {
       if (!response.ok) {
         throw new Error(`Failed to fetch data: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      
+
       if (!result || Object.keys(result).length === 0) {
-        throw new Error('No data received from server');
+        throw new Error("No data received from server");
       }
-      
+
       setData(result);
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      setError(error instanceof Error ? error.message : 'Failed to load data');
-      
+      console.error("Error fetching dashboard data:", error);
+      setError(error instanceof Error ? error.message : "Failed to load data");
+
       // Generate fallback data for development
       const fallbackData: DashboardData = {
         weather: Array.from({ length: 24 }, (_, i) => ({
-          timestamp: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
+          timestamp: new Date(
+            Date.now() - (23 - i) * 60 * 60 * 1000
+          ).toISOString(),
           temperature: 20 + Math.sin(i / 4) * 8 + Math.random() * 4,
           humidity: 50 + Math.sin(i / 6) * 20 + Math.random() * 10,
           windSpeed: 5 + Math.random() * 10,
-          pressure: 1010 + Math.sin(i / 8) * 15 + Math.random() * 5
+          pressure: 1010 + Math.sin(i / 8) * 15 + Math.random() * 5,
         })),
         air_quality: Array.from({ length: 24 }, (_, i) => ({
-          timestamp: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
+          timestamp: new Date(
+            Date.now() - (23 - i) * 60 * 60 * 1000
+          ).toISOString(),
           aqi: 80 + Math.sin(i / 3) * 30 + Math.random() * 20,
           pm25: 15 + Math.random() * 20,
           pm10: 25 + Math.random() * 30,
           o3: 40 + Math.random() * 20,
           no2: 20 + Math.random() * 15,
-          so2: 5 + Math.random() * 10
+          so2: 5 + Math.random() * 10,
         })),
         satellite: Array.from({ length: 24 }, (_, i) => {
           const satelliteData = {
-            timestamp: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-            visibility: Math.max(1, 8 + Math.sin(i * 0.3) * 3 + Math.random() * 2),
-            cloud_cover: Math.max(0, Math.min(100, 30 + Math.sin(i * 0.25) * 40 + Math.random() * 20)),
-            aerosol_optical_depth: Math.max(0.05, 0.2 + Math.sin(i * 0.4) * 0.3 + Math.random() * 0.1)
+            timestamp: new Date(
+              Date.now() - (23 - i) * 60 * 60 * 1000
+            ).toISOString(),
+            visibility: Math.max(
+              1,
+              8 + Math.sin(i * 0.3) * 3 + Math.random() * 2
+            ),
+            cloud_cover: Math.max(
+              0,
+              Math.min(100, 30 + Math.sin(i * 0.25) * 40 + Math.random() * 20)
+            ),
+            aerosol_optical_depth: Math.max(
+              0.05,
+              0.2 + Math.sin(i * 0.4) * 0.3 + Math.random() * 0.1
+            ),
           };
           return satelliteData;
         }),
         health: Array.from({ length: 12 }, (_, i) => ({
-          timestamp: new Date(Date.now() - (11 - i) * 2 * 60 * 60 * 1000).toISOString(),
+          timestamp: new Date(
+            Date.now() - (11 - i) * 2 * 60 * 60 * 1000
+          ).toISOString(),
           overall_health_index: 7 + Math.random() * 2,
           respiratory_risk: 3 + Math.random() * 4,
-          cardiovascular_risk: 2 + Math.random() * 3
+          cardiovascular_risk: 2 + Math.random() * 3,
         })),
         forecast: Array.from({ length: 12 }, (_, i) => ({
           hour: `${(new Date().getHours() + i + 1) % 24}:00`,
           predicted_aqi: 85 + Math.sin(i / 2) * 25 + Math.random() * 15,
-          confidence: 75 + Math.random() * 20
+          confidence: 75 + Math.random() * 20,
         })),
         status: {
-          api_status: 'Connected',
+          api_status: "Connected",
           data_freshness: 85 + Math.random() * 10,
-          last_update: new Date().toISOString()
+          last_update: new Date().toISOString(),
         },
         location_info: {
           name: selectedLocation,
-          country: 'Simulated',
-          timezone: 'UTC',
-          local_time: new Date().toLocaleTimeString()
-        }
+          country: "Simulated",
+          timezone: "UTC",
+          local_time: new Date().toLocaleTimeString(),
+        },
       };
-      
+
       setData(fallbackData);
     } finally {
       setLoading(false);
     }
   };
 
-  const getChartOptions = (yAxisLabel: string, showLegend: boolean = true): ChartOptions<'line' | 'bar'> => ({
+  const getChartOptions = (
+    yAxisLabel: string,
+    showLegend: boolean = true
+  ): ChartOptions<"line" | "bar"> => ({
     responsive: true,
     maintainAspectRatio: false,
     aspectRatio: 2,
     animation: {
       duration: 1200,
-      easing: 'easeInOutQuart'
+      easing: "easeInOutQuart",
     },
     layout: {
       padding: {
         top: 10,
         bottom: 10,
         left: 5,
-        right: 5
-      }
+        right: 5,
+      },
     },
     interaction: {
-      mode: 'index',
-      intersect: false
+      mode: "index",
+      intersect: false,
     },
     plugins: {
       legend: {
         display: showLegend,
-        position: 'top',
+        position: "top",
         labels: {
-          color: '#1976d2',
+          color: "#1976d2",
           font: {
-            family: 'Montserrat',
+            family: "Montserrat",
             size: 12,
-            weight: 600
+            weight: 600,
           },
           usePointStyle: true,
-          pointStyle: 'circle'
-        }
+          pointStyle: "circle",
+        },
       },
       tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#1976d2',
-        bodyColor: '#333',
-        borderColor: '#1976d2',
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        titleColor: "#1976d2",
+        bodyColor: "#333",
+        borderColor: "#1976d2",
         borderWidth: 1,
         cornerRadius: 12,
         displayColors: true,
         titleFont: {
-          family: 'Montserrat',
+          family: "Montserrat",
           size: 14,
-          weight: 600
+          weight: 600,
         },
         bodyFont: {
-          family: 'Montserrat',
-          size: 12
-        }
-      }
+          family: "Montserrat",
+          size: 12,
+        },
+      },
     },
     scales: {
       x: {
         title: {
           display: true,
-          text: 'Time',
-          color: '#1976d2',
+          text: "Time",
+          color: "#1976d2",
           font: {
-            family: 'Montserrat',
+            family: "Montserrat",
             size: 12,
-            weight: 600
-          }
+            weight: 600,
+          },
         },
         ticks: {
-          color: '#1976d2',
+          color: "#1976d2",
           font: {
-            family: 'Montserrat',
-            size: 10
-          }
+            family: "Montserrat",
+            size: 10,
+          },
         },
         grid: {
-          color: 'rgba(25, 118, 210, 0.1)'
-        }
+          color: "rgba(25, 118, 210, 0.1)",
+        },
       },
       y: {
         title: {
           display: true,
           text: yAxisLabel,
-          color: '#1976d2',
+          color: "#1976d2",
           font: {
-            family: 'Montserrat',
+            family: "Montserrat",
             size: 12,
-            weight: 600
-          }
+            weight: 600,
+          },
         },
         ticks: {
-          color: '#1976d2',
+          color: "#1976d2",
           font: {
-            family: 'Montserrat',
-            size: 10
-          }
+            family: "Montserrat",
+            size: 10,
+          },
         },
         grid: {
-          color: 'rgba(25, 118, 210, 0.1)'
+          color: "rgba(25, 118, 210, 0.1)",
         },
-        grace: '5%'
-      }
+        grace: "5%",
+      },
     },
     elements: {
       line: {
-        tension: 0.4
+        tension: 0.4,
       },
       point: {
         radius: 5,
         hoverRadius: 8,
         borderWidth: 2,
-        hoverBorderWidth: 3
-      }
-    }
+        hoverBorderWidth: 3,
+      },
+    },
   });
 
   if (loading) {
@@ -348,17 +426,24 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  const timeLabels = data?.weather?.map(item =>
-    new Date(item.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-  ) || [];
+  const timeLabels =
+    data?.weather?.map((item) =>
+      new Date(item.timestamp).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    ) || [];
 
-  const forecastLabels = data?.forecast?.map(item => item.hour) || [];
+  const forecastLabels = data?.forecast?.map((item) => item.hour) || [];
 
   // Debug satellite data
-  if (data?.satellite && selectedTab === 'satellite') {
-    console.log('Satellite data length:', data.satellite.length);
-    console.log('Satellite visibility values:', data.satellite.map(item => item.visibility));
-    console.log('Time labels length:', timeLabels.length);
+  if (data?.satellite && selectedTab === "satellite") {
+    console.log("Satellite data length:", data.satellite.length);
+    console.log(
+      "Satellite visibility values:",
+      data.satellite.map((item) => item.visibility)
+    );
+    console.log("Time labels length:", timeLabels.length);
   }
 
   return (
@@ -372,7 +457,7 @@ const Dashboard: React.FC = () => {
               style={{
                 left: `${Math.random() * 100}%`,
                 animationDelay: `${Math.random() * 10}s`,
-                animationDuration: `${10 + Math.random() * 20}s`
+                animationDuration: `${10 + Math.random() * 20}s`,
               }}
             />
           ))}
@@ -401,41 +486,114 @@ const Dashboard: React.FC = () => {
               </div>
             )}
           </div>
-          
+
           <div className="status-section">
             <div className="status-card">
               <span className="status-label">API Status</span>
-              <span className="status-value">{data?.status.api_status || 'Connected'}</span>
+              <span className="status-value">
+                {data?.status.api_status || "Connected"}
+              </span>
             </div>
             <div className="status-card">
               <span className="status-label">Data Quality</span>
-              <span className="status-value">{data?.status.data_freshness?.toFixed(1) || '95.0'}%</span>
+              <span className="status-value">
+                {data?.status.data_freshness?.toFixed(1) || "95.0"}%
+              </span>
             </div>
             <div className="status-card">
               <span className="status-label">Last Update</span>
               <span className="status-value">
-                {data?.status.last_update ? new Date(data.status.last_update).toLocaleTimeString() : 'Just now'}
+                {data?.status.last_update
+                  ? new Date(data.status.last_update).toLocaleTimeString()
+                  : "Just now"}
               </span>
             </div>
-            
+
             <div className="location-selector">
               <label htmlFor="location-select">Location:</label>
-              <select
-                id="location-select"
-                value={selectedLocation}
-                onChange={(e) => setSelectedLocation(e.target.value)}
-                className="location-dropdown"
+
+              {/* Current Location Toggle */}
+              <button
+                className={`current-location-btn ${
+                  useCurrentLocation ? "active" : ""
+                }`}
+                onClick={() => setUseCurrentLocation(!useCurrentLocation)}
+                title={
+                  useCurrentLocation
+                    ? "Using current location"
+                    : "Use my current location"
+                }
+                style={{
+                  padding: "8px 16px",
+                  marginLeft: "10px",
+                  borderRadius: "8px",
+                  border: useCurrentLocation
+                    ? "2px solid #1976d2"
+                    : "2px solid rgba(25, 118, 210, 0.3)",
+                  background: useCurrentLocation
+                    ? "linear-gradient(135deg, #1976d2, #42a5f5)"
+                    : "rgba(255, 255, 255, 0.9)",
+                  color: useCurrentLocation ? "white" : "#1976d2",
+                  cursor: "pointer",
+                  fontWeight: "600",
+                  fontSize: "0.85rem",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  transition: "all 0.3s ease",
+                  boxShadow: useCurrentLocation
+                    ? "0 4px 12px rgba(25, 118, 210, 0.3)"
+                    : "0 2px 6px rgba(0, 0, 0, 0.1)",
+                }}
               >
-                {locations.map((location) => (
-                  <option key={location.name} value={location.name}>
-                    {location.name}, {location.country}
-                  </option>
-                ))}
-              </select>
-              {data?.location_info && (
+                📍{" "}
+                {useCurrentLocation
+                  ? "Current Location"
+                  : "Use Current Location"}
+              </button>
+
+              {/* Manual Location Selector */}
+              {!useCurrentLocation && (
+                <select
+                  id="location-select"
+                  value={selectedLocation}
+                  onChange={(e) => setSelectedLocation(e.target.value)}
+                  className="location-dropdown"
+                  style={{ marginLeft: "10px" }}
+                >
+                  {locations.map((location) => (
+                    <option key={location.name} value={location.name}>
+                      {location.name}, {location.country}
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              {/* Display current location info */}
+              {useCurrentLocation && userCoordinates && (
+                <div className="location-info" style={{ marginLeft: "10px" }}>
+                  <div style={{ color: "#1976d2", fontWeight: "600" }}>
+                    {geoLocationName || "Detecting..."}
+                  </div>
+                  <div className="coordinates">
+                    {userCoordinates.lat.toFixed(2)}°,{" "}
+                    {userCoordinates.lon.toFixed(2)}°
+                  </div>
+                </div>
+              )}
+
+              {/* Display manual location info */}
+              {!useCurrentLocation && data?.location_info && (
                 <div className="location-info">
                   <div className="coordinates">
-                    {locations.find(l => l.name === selectedLocation)?.lat.toFixed(2)}°, {locations.find(l => l.name === selectedLocation)?.lon.toFixed(2)}°
+                    {locations
+                      .find((l) => l.name === selectedLocation)
+                      ?.lat.toFixed(2)}
+                    °,{" "}
+                    {locations
+                      .find((l) => l.name === selectedLocation)
+                      ?.lon.toFixed(2)}
+                    °
                   </div>
                   <div className="timezone">{data.location_info.timezone}</div>
                 </div>
@@ -506,7 +664,7 @@ const Dashboard: React.FC = () => {
           ].map((tab) => (
             <button
               key={tab.key}
-              className={`nav-tab ${selectedTab === tab.key ? 'active' : ''}`}
+              className={`nav-tab ${selectedTab === tab.key ? "active" : ""}`}
               onClick={() => setSelectedTab(tab.key as any)}
             >
               <span className="tab-icon">{tab.icon}</span>
@@ -518,7 +676,7 @@ const Dashboard: React.FC = () => {
 
       {/* Content */}
       <div className="dashboard-content">
-        {selectedTab === 'overview' && (
+        {selectedTab === "overview" && (
           <div className="overview-grid">
             {/* Air Quality Index Trend */}
             <div className="chart-container">
@@ -527,22 +685,24 @@ const Dashboard: React.FC = () => {
                 <Line
                   data={{
                     labels: timeLabels,
-                    datasets: [{
-                      label: 'AQI',
-                      data: data?.air_quality?.map(item => item.aqi) || [],
-                      borderColor: '#1976d2',
-                      backgroundColor: 'rgba(25, 118, 210, 0.15)',
-                      borderWidth: 3,
-                      tension: 0.4,
-                      fill: true,
-                      pointBackgroundColor: '#1976d2',
-                      pointBorderColor: '#ffffff',
-                      pointBorderWidth: 2,
-                      pointRadius: 5,
-                      pointHoverRadius: 8
-                    }]
+                    datasets: [
+                      {
+                        label: "AQI",
+                        data: data?.air_quality?.map((item) => item.aqi) || [],
+                        borderColor: "#1976d2",
+                        backgroundColor: "rgba(25, 118, 210, 0.15)",
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: "#1976d2",
+                        pointBorderColor: "#ffffff",
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                      },
+                    ],
                   }}
-                  options={getChartOptions('AQI', true)}
+                  options={getChartOptions("AQI", true)}
                 />
               </div>
             </div>
@@ -552,35 +712,42 @@ const Dashboard: React.FC = () => {
               <h3>Current Air Quality Breakdown</h3>
               <Bar
                 data={{
-                  labels: ['PM2.5', 'PM10', 'O₃', 'NO₂', 'SO₂'],
-                  datasets: [{
-                    label: 'Concentration (μg/m³)',
-                    data: [
-                      data?.air_quality?.[data.air_quality.length - 1]?.pm25 || 0,
-                      data?.air_quality?.[data.air_quality.length - 1]?.pm10 || 0,
-                      data?.air_quality?.[data.air_quality.length - 1]?.o3 || 0,
-                      data?.air_quality?.[data.air_quality.length - 1]?.no2 || 0,
-                      data?.air_quality?.[data.air_quality.length - 1]?.so2 || 0,
-                    ],
-                    backgroundColor: [
-                      'rgba(255, 99, 132, 0.8)',
-                      'rgba(54, 162, 235, 0.8)',
-                      'rgba(255, 205, 86, 0.8)',
-                      'rgba(75, 192, 192, 0.8)',
-                      'rgba(153, 102, 255, 0.8)'
-                    ],
-                    borderColor: [
-                      '#ff6384',
-                      '#36a2eb',
-                      '#ffcd56',
-                      '#4bc0c0',
-                      '#9966ff'
-                    ],
-                    borderWidth: 2,
-                    borderRadius: 8
-                  }]
+                  labels: ["PM2.5", "PM10", "O₃", "NO₂", "SO₂"],
+                  datasets: [
+                    {
+                      label: "Concentration (μg/m³)",
+                      data: [
+                        data?.air_quality?.[data.air_quality.length - 1]
+                          ?.pm25 || 0,
+                        data?.air_quality?.[data.air_quality.length - 1]
+                          ?.pm10 || 0,
+                        data?.air_quality?.[data.air_quality.length - 1]?.o3 ||
+                          0,
+                        data?.air_quality?.[data.air_quality.length - 1]?.no2 ||
+                          0,
+                        data?.air_quality?.[data.air_quality.length - 1]?.so2 ||
+                          0,
+                      ],
+                      backgroundColor: [
+                        "rgba(255, 99, 132, 0.8)",
+                        "rgba(54, 162, 235, 0.8)",
+                        "rgba(255, 205, 86, 0.8)",
+                        "rgba(75, 192, 192, 0.8)",
+                        "rgba(153, 102, 255, 0.8)",
+                      ],
+                      borderColor: [
+                        "#ff6384",
+                        "#36a2eb",
+                        "#ffcd56",
+                        "#4bc0c0",
+                        "#9966ff",
+                      ],
+                      borderWidth: 2,
+                      borderRadius: 8,
+                    },
+                  ],
                 }}
-                options={getChartOptions('Concentration (μg/m³)', false)}
+                options={getChartOptions("Concentration (μg/m³)", false)}
               />
             </div>
 
@@ -592,63 +759,86 @@ const Dashboard: React.FC = () => {
                   labels: timeLabels.slice(-12),
                   datasets: [
                     {
-                      label: 'Temperature (°C)',
-                      data: data?.weather?.slice(-12).map(item => item.temperature) || [],
-                      borderColor: '#ff6384',
-                      backgroundColor: 'rgba(255, 99, 132, 0.15)',
+                      label: "Temperature (°C)",
+                      data:
+                        data?.weather
+                          ?.slice(-12)
+                          .map((item) => item.temperature) || [],
+                      borderColor: "#ff6384",
+                      backgroundColor: "rgba(255, 99, 132, 0.15)",
                       borderWidth: 3,
                       tension: 0.4,
                       fill: true,
-                      yAxisID: 'y',
-                      pointBackgroundColor: '#ff6384',
-                      pointBorderColor: '#ffffff',
+                      yAxisID: "y",
+                      pointBackgroundColor: "#ff6384",
+                      pointBorderColor: "#ffffff",
                       pointBorderWidth: 2,
                       pointRadius: 5,
-                      pointHoverRadius: 8
+                      pointHoverRadius: 8,
                     },
                     {
-                      label: 'Humidity (%)',
-                      data: data?.weather?.slice(-12).map(item => item.humidity) || [],
-                      borderColor: '#36a2eb',
-                      backgroundColor: 'rgba(54, 162, 235, 0.15)',
+                      label: "Humidity (%)",
+                      data:
+                        data?.weather
+                          ?.slice(-12)
+                          .map((item) => item.humidity) || [],
+                      borderColor: "#36a2eb",
+                      backgroundColor: "rgba(54, 162, 235, 0.15)",
                       borderWidth: 3,
                       tension: 0.4,
                       fill: true,
-                      yAxisID: 'y1',
-                      pointBackgroundColor: '#36a2eb',
-                      pointBorderColor: '#ffffff',
+                      yAxisID: "y1",
+                      pointBackgroundColor: "#36a2eb",
+                      pointBorderColor: "#ffffff",
                       pointBorderWidth: 2,
                       pointRadius: 5,
-                      pointHoverRadius: 8
-                    }
-                  ]
+                      pointHoverRadius: 8,
+                    },
+                  ],
                 }}
-                options={{
-                  ...getChartOptions('Temperature (°C)', true),
-                  scales: {
-                    x: {
-                      title: { display: true, text: 'Time', color: '#1976d2', font: { family: 'Montserrat' } },
-                      ticks: { color: '#1976d2' },
-                      grid: { color: 'rgba(25, 118, 210, 0.1)' }
+                options={
+                  {
+                    ...getChartOptions("Temperature (°C)", true),
+                    scales: {
+                      x: {
+                        title: {
+                          display: true,
+                          text: "Time",
+                          color: "#1976d2",
+                          font: { family: "Montserrat" },
+                        },
+                        ticks: { color: "#1976d2" },
+                        grid: { color: "rgba(25, 118, 210, 0.1)" },
+                      },
+                      y: {
+                        type: "linear",
+                        display: true,
+                        position: "left",
+                        title: {
+                          display: true,
+                          text: "Temperature (°C)",
+                          color: "#ff6384",
+                          font: { family: "Montserrat" },
+                        },
+                        ticks: { color: "#ff6384" },
+                        grid: { color: "rgba(255, 99, 132, 0.1)" },
+                      },
+                      y1: {
+                        type: "linear",
+                        display: true,
+                        position: "right",
+                        title: {
+                          display: true,
+                          text: "Humidity (%)",
+                          color: "#36a2eb",
+                          font: { family: "Montserrat" },
+                        },
+                        ticks: { color: "#36a2eb" },
+                        grid: { drawOnChartArea: false },
+                      },
                     },
-                    y: {
-                      type: 'linear',
-                      display: true,
-                      position: 'left',
-                      title: { display: true, text: 'Temperature (°C)', color: '#ff6384', font: { family: 'Montserrat' } },
-                      ticks: { color: '#ff6384' },
-                      grid: { color: 'rgba(255, 99, 132, 0.1)' }
-                    },
-                    y1: {
-                      type: 'linear',
-                      display: true,
-                      position: 'right',
-                      title: { display: true, text: 'Humidity (%)', color: '#36a2eb', font: { family: 'Montserrat' } },
-                      ticks: { color: '#36a2eb' },
-                      grid: { drawOnChartArea: false }
-                    }
-                  }
-                } as ChartOptions<'line'>}
+                  } as ChartOptions<"line">
+                }
               />
             </div>
 
@@ -660,42 +850,48 @@ const Dashboard: React.FC = () => {
                   labels: timeLabels.slice(-12),
                   datasets: [
                     {
-                      label: 'Overall Health Index',
-                      data: data?.health?.slice(-12).map(item => item.overall_health_index) || [],
-                      borderColor: '#4caf50',
-                      backgroundColor: 'rgba(76, 175, 80, 0.15)',
+                      label: "Overall Health Index",
+                      data:
+                        data?.health
+                          ?.slice(-12)
+                          .map((item) => item.overall_health_index) || [],
+                      borderColor: "#4caf50",
+                      backgroundColor: "rgba(76, 175, 80, 0.15)",
                       borderWidth: 3,
                       tension: 0.4,
                       fill: true,
-                      pointBackgroundColor: '#4caf50',
-                      pointBorderColor: '#ffffff',
+                      pointBackgroundColor: "#4caf50",
+                      pointBorderColor: "#ffffff",
                       pointBorderWidth: 2,
                       pointRadius: 5,
-                      pointHoverRadius: 8
+                      pointHoverRadius: 8,
                     },
                     {
-                      label: 'Respiratory Risk',
-                      data: data?.health?.slice(-12).map(item => item.respiratory_risk) || [],
-                      borderColor: '#ff9800',
-                      backgroundColor: 'rgba(255, 152, 0, 0.15)',
+                      label: "Respiratory Risk",
+                      data:
+                        data?.health
+                          ?.slice(-12)
+                          .map((item) => item.respiratory_risk) || [],
+                      borderColor: "#ff9800",
+                      backgroundColor: "rgba(255, 152, 0, 0.15)",
                       borderWidth: 3,
                       tension: 0.4,
                       fill: true,
-                      pointBackgroundColor: '#ff9800',
-                      pointBorderColor: '#ffffff',
+                      pointBackgroundColor: "#ff9800",
+                      pointBorderColor: "#ffffff",
                       pointBorderWidth: 2,
                       pointRadius: 5,
-                      pointHoverRadius: 8
-                    }
-                  ]
+                      pointHoverRadius: 8,
+                    },
+                  ],
                 }}
-                options={getChartOptions('Index/Risk Level', true)}
+                options={getChartOptions("Index/Risk Level", true)}
               />
             </div>
           </div>
         )}
 
-        {selectedTab === 'weather' && (
+        {selectedTab === "weather" && (
           <div className="content-grid">
             {/* Temperature Trend */}
             <div className="chart-container">
@@ -703,22 +899,25 @@ const Dashboard: React.FC = () => {
               <Line
                 data={{
                   labels: timeLabels,
-                  datasets: [{
-                    label: 'Temperature (°C)',
-                    data: data?.weather?.map(item => item.temperature) || [],
-                    borderColor: '#ff6384',
-                    backgroundColor: 'rgba(255, 99, 132, 0.15)',
-                    borderWidth: 3,
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#ff6384',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 5,
-                    pointHoverRadius: 8
-                  }]
+                  datasets: [
+                    {
+                      label: "Temperature (°C)",
+                      data:
+                        data?.weather?.map((item) => item.temperature) || [],
+                      borderColor: "#ff6384",
+                      backgroundColor: "rgba(255, 99, 132, 0.15)",
+                      borderWidth: 3,
+                      tension: 0.4,
+                      fill: true,
+                      pointBackgroundColor: "#ff6384",
+                      pointBorderColor: "#ffffff",
+                      pointBorderWidth: 2,
+                      pointRadius: 5,
+                      pointHoverRadius: 8,
+                    },
+                  ],
                 }}
-                options={getChartOptions('Temperature (°C)', false)}
+                options={getChartOptions("Temperature (°C)", false)}
               />
             </div>
 
@@ -728,22 +927,24 @@ const Dashboard: React.FC = () => {
               <Line
                 data={{
                   labels: timeLabels,
-                  datasets: [{
-                    label: 'Humidity (%)',
-                    data: data?.weather?.map(item => item.humidity) || [],
-                    borderColor: '#36a2eb',
-                    backgroundColor: 'rgba(54, 162, 235, 0.15)',
-                    borderWidth: 3,
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#36a2eb',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 5,
-                    pointHoverRadius: 8
-                  }]
+                  datasets: [
+                    {
+                      label: "Humidity (%)",
+                      data: data?.weather?.map((item) => item.humidity) || [],
+                      borderColor: "#36a2eb",
+                      backgroundColor: "rgba(54, 162, 235, 0.15)",
+                      borderWidth: 3,
+                      tension: 0.4,
+                      fill: true,
+                      pointBackgroundColor: "#36a2eb",
+                      pointBorderColor: "#ffffff",
+                      pointBorderWidth: 2,
+                      pointRadius: 5,
+                      pointHoverRadius: 8,
+                    },
+                  ],
                 }}
-                options={getChartOptions('Humidity (%)', false)}
+                options={getChartOptions("Humidity (%)", false)}
               />
             </div>
 
@@ -755,69 +956,86 @@ const Dashboard: React.FC = () => {
                   labels: timeLabels,
                   datasets: [
                     {
-                      label: 'Wind Speed (m/s)',
-                      data: data?.weather?.map(item => item.windSpeed) || [],
-                      borderColor: '#4bc0c0',
-                      backgroundColor: 'rgba(75, 192, 192, 0.15)',
+                      label: "Wind Speed (m/s)",
+                      data: data?.weather?.map((item) => item.windSpeed) || [],
+                      borderColor: "#4bc0c0",
+                      backgroundColor: "rgba(75, 192, 192, 0.15)",
                       borderWidth: 3,
                       tension: 0.4,
                       fill: true,
-                      yAxisID: 'y',
-                      pointBackgroundColor: '#4bc0c0',
-                      pointBorderColor: '#ffffff',
+                      yAxisID: "y",
+                      pointBackgroundColor: "#4bc0c0",
+                      pointBorderColor: "#ffffff",
                       pointBorderWidth: 2,
                       pointRadius: 5,
-                      pointHoverRadius: 8
+                      pointHoverRadius: 8,
                     },
                     {
-                      label: 'Pressure (hPa)',
-                      data: data?.weather?.map(item => item.pressure) || [],
-                      borderColor: '#9966ff',
-                      backgroundColor: 'rgba(153, 102, 255, 0.15)',
+                      label: "Pressure (hPa)",
+                      data: data?.weather?.map((item) => item.pressure) || [],
+                      borderColor: "#9966ff",
+                      backgroundColor: "rgba(153, 102, 255, 0.15)",
                       borderWidth: 3,
                       tension: 0.4,
                       fill: true,
-                      yAxisID: 'y1',
-                      pointBackgroundColor: '#9966ff',
-                      pointBorderColor: '#ffffff',
+                      yAxisID: "y1",
+                      pointBackgroundColor: "#9966ff",
+                      pointBorderColor: "#ffffff",
                       pointBorderWidth: 2,
                       pointRadius: 5,
-                      pointHoverRadius: 8
-                    }
-                  ]
+                      pointHoverRadius: 8,
+                    },
+                  ],
                 }}
-                options={{
-                  ...getChartOptions('Wind Speed (m/s)', true),
-                  scales: {
-                    x: {
-                      title: { display: true, text: 'Time', color: '#1976d2', font: { family: 'Montserrat' } },
-                      ticks: { color: '#1976d2' },
-                      grid: { color: 'rgba(25, 118, 210, 0.1)' }
+                options={
+                  {
+                    ...getChartOptions("Wind Speed (m/s)", true),
+                    scales: {
+                      x: {
+                        title: {
+                          display: true,
+                          text: "Time",
+                          color: "#1976d2",
+                          font: { family: "Montserrat" },
+                        },
+                        ticks: { color: "#1976d2" },
+                        grid: { color: "rgba(25, 118, 210, 0.1)" },
+                      },
+                      y: {
+                        type: "linear",
+                        display: true,
+                        position: "left",
+                        title: {
+                          display: true,
+                          text: "Wind Speed (m/s)",
+                          color: "#4bc0c0",
+                          font: { family: "Montserrat" },
+                        },
+                        ticks: { color: "#4bc0c0" },
+                        grid: { color: "rgba(75, 192, 192, 0.1)" },
+                      },
+                      y1: {
+                        type: "linear",
+                        display: true,
+                        position: "right",
+                        title: {
+                          display: true,
+                          text: "Pressure (hPa)",
+                          color: "#9966ff",
+                          font: { family: "Montserrat" },
+                        },
+                        ticks: { color: "#9966ff" },
+                        grid: { drawOnChartArea: false },
+                      },
                     },
-                    y: {
-                      type: 'linear',
-                      display: true,
-                      position: 'left',
-                      title: { display: true, text: 'Wind Speed (m/s)', color: '#4bc0c0', font: { family: 'Montserrat' } },
-                      ticks: { color: '#4bc0c0' },
-                      grid: { color: 'rgba(75, 192, 192, 0.1)' }
-                    },
-                    y1: {
-                      type: 'linear',
-                      display: true,
-                      position: 'right',
-                      title: { display: true, text: 'Pressure (hPa)', color: '#9966ff', font: { family: 'Montserrat' } },
-                      ticks: { color: '#9966ff' },
-                      grid: { drawOnChartArea: false }
-                    }
-                  }
-                } as ChartOptions<'line'>}
+                  } as ChartOptions<"line">
+                }
               />
             </div>
           </div>
         )}
 
-        {selectedTab === 'air-quality' && (
+        {selectedTab === "air-quality" && (
           <div className="content-grid">
             {/* AQI Trend */}
             <div className="chart-container">
@@ -825,22 +1043,24 @@ const Dashboard: React.FC = () => {
               <Line
                 data={{
                   labels: timeLabels,
-                  datasets: [{
-                    label: 'AQI',
-                    data: data?.air_quality?.map(item => item.aqi) || [],
-                    borderColor: '#1976d2',
-                    backgroundColor: 'rgba(25, 118, 210, 0.15)',
-                    borderWidth: 3,
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#1976d2',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 5,
-                    pointHoverRadius: 8
-                  }]
+                  datasets: [
+                    {
+                      label: "AQI",
+                      data: data?.air_quality?.map((item) => item.aqi) || [],
+                      borderColor: "#1976d2",
+                      backgroundColor: "rgba(25, 118, 210, 0.15)",
+                      borderWidth: 3,
+                      tension: 0.4,
+                      fill: true,
+                      pointBackgroundColor: "#1976d2",
+                      pointBorderColor: "#ffffff",
+                      pointBorderWidth: 2,
+                      pointRadius: 5,
+                      pointHoverRadius: 8,
+                    },
+                  ],
                 }}
-                options={getChartOptions('AQI', true)}
+                options={getChartOptions("AQI", true)}
               />
             </div>
 
@@ -852,36 +1072,36 @@ const Dashboard: React.FC = () => {
                   labels: timeLabels,
                   datasets: [
                     {
-                      label: 'PM2.5 (μg/m³)',
-                      data: data?.air_quality?.map(item => item.pm25) || [],
-                      borderColor: '#ff6384',
-                      backgroundColor: 'rgba(255, 99, 132, 0.15)',
+                      label: "PM2.5 (μg/m³)",
+                      data: data?.air_quality?.map((item) => item.pm25) || [],
+                      borderColor: "#ff6384",
+                      backgroundColor: "rgba(255, 99, 132, 0.15)",
                       borderWidth: 3,
                       tension: 0.4,
                       fill: true,
-                      pointBackgroundColor: '#ff6384',
-                      pointBorderColor: '#ffffff',
+                      pointBackgroundColor: "#ff6384",
+                      pointBorderColor: "#ffffff",
                       pointBorderWidth: 2,
                       pointRadius: 5,
-                      pointHoverRadius: 8
+                      pointHoverRadius: 8,
                     },
                     {
-                      label: 'PM10 (μg/m³)',
-                      data: data?.air_quality?.map(item => item.pm10) || [],
-                      borderColor: '#36a2eb',
-                      backgroundColor: 'rgba(54, 162, 235, 0.15)',
+                      label: "PM10 (μg/m³)",
+                      data: data?.air_quality?.map((item) => item.pm10) || [],
+                      borderColor: "#36a2eb",
+                      backgroundColor: "rgba(54, 162, 235, 0.15)",
                       borderWidth: 3,
                       tension: 0.4,
                       fill: true,
-                      pointBackgroundColor: '#36a2eb',
-                      pointBorderColor: '#ffffff',
+                      pointBackgroundColor: "#36a2eb",
+                      pointBorderColor: "#ffffff",
                       pointBorderWidth: 2,
                       pointRadius: 5,
-                      pointHoverRadius: 8
-                    }
-                  ]
+                      pointHoverRadius: 8,
+                    },
+                  ],
                 }}
-                options={getChartOptions('Concentration (μg/m³)', true)}
+                options={getChartOptions("Concentration (μg/m³)", true)}
               />
             </div>
 
@@ -893,56 +1113,56 @@ const Dashboard: React.FC = () => {
                   labels: timeLabels,
                   datasets: [
                     {
-                      label: 'O₃ (μg/m³)',
-                      data: data?.air_quality?.map(item => item.o3) || [],
-                      borderColor: '#ffcd56',
-                      backgroundColor: 'rgba(255, 205, 86, 0.15)',
+                      label: "O₃ (μg/m³)",
+                      data: data?.air_quality?.map((item) => item.o3) || [],
+                      borderColor: "#ffcd56",
+                      backgroundColor: "rgba(255, 205, 86, 0.15)",
                       borderWidth: 3,
                       tension: 0.4,
                       fill: true,
-                      pointBackgroundColor: '#ffcd56',
-                      pointBorderColor: '#ffffff',
+                      pointBackgroundColor: "#ffcd56",
+                      pointBorderColor: "#ffffff",
                       pointBorderWidth: 2,
                       pointRadius: 5,
-                      pointHoverRadius: 8
+                      pointHoverRadius: 8,
                     },
                     {
-                      label: 'NO₂ (μg/m³)',
-                      data: data?.air_quality?.map(item => item.no2) || [],
-                      borderColor: '#4bc0c0',
-                      backgroundColor: 'rgba(75, 192, 192, 0.15)',
+                      label: "NO₂ (μg/m³)",
+                      data: data?.air_quality?.map((item) => item.no2) || [],
+                      borderColor: "#4bc0c0",
+                      backgroundColor: "rgba(75, 192, 192, 0.15)",
                       borderWidth: 3,
                       tension: 0.4,
                       fill: true,
-                      pointBackgroundColor: '#4bc0c0',
-                      pointBorderColor: '#ffffff',
+                      pointBackgroundColor: "#4bc0c0",
+                      pointBorderColor: "#ffffff",
                       pointBorderWidth: 2,
                       pointRadius: 5,
-                      pointHoverRadius: 8
+                      pointHoverRadius: 8,
                     },
                     {
-                      label: 'SO₂ (μg/m³)',
-                      data: data?.air_quality?.map(item => item.so2) || [],
-                      borderColor: '#9966ff',
-                      backgroundColor: 'rgba(153, 102, 255, 0.15)',
+                      label: "SO₂ (μg/m³)",
+                      data: data?.air_quality?.map((item) => item.so2) || [],
+                      borderColor: "#9966ff",
+                      backgroundColor: "rgba(153, 102, 255, 0.15)",
                       borderWidth: 3,
                       tension: 0.4,
                       fill: true,
-                      pointBackgroundColor: '#9966ff',
-                      pointBorderColor: '#ffffff',
+                      pointBackgroundColor: "#9966ff",
+                      pointBorderColor: "#ffffff",
                       pointBorderWidth: 2,
                       pointRadius: 5,
-                      pointHoverRadius: 8
-                    }
-                  ]
+                      pointHoverRadius: 8,
+                    },
+                  ],
                 }}
-                options={getChartOptions('Concentration (μg/m³)', true)}
+                options={getChartOptions("Concentration (μg/m³)", true)}
               />
             </div>
           </div>
         )}
 
-        {selectedTab === 'satellite' && (
+        {selectedTab === "satellite" && (
           <div className="content-grid">
             {/* Atmospheric Visibility */}
             <div className="chart-container">
@@ -951,25 +1171,28 @@ const Dashboard: React.FC = () => {
                 <Line
                   data={{
                     labels: timeLabels,
-                    datasets: [{
-                      label: 'Visibility (km)',
-                      data: data?.satellite?.map(item => {
-                        const visibility = Number(item.visibility);
-                        return isNaN(visibility) ? 0 : visibility;
-                      }) || [],
-                      borderColor: '#4caf50',
-                      backgroundColor: 'rgba(76, 175, 80, 0.15)',
-                      borderWidth: 3,
-                      tension: 0.4,
-                      fill: true,
-                      pointBackgroundColor: '#4caf50',
-                      pointBorderColor: '#ffffff',
-                      pointBorderWidth: 2,
-                      pointRadius: 5,
-                      pointHoverRadius: 8
-                    }]
+                    datasets: [
+                      {
+                        label: "Visibility (km)",
+                        data:
+                          data?.satellite?.map((item) => {
+                            const visibility = Number(item.visibility);
+                            return isNaN(visibility) ? 0 : visibility;
+                          }) || [],
+                        borderColor: "#4caf50",
+                        backgroundColor: "rgba(76, 175, 80, 0.15)",
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: "#4caf50",
+                        pointBorderColor: "#ffffff",
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                      },
+                    ],
                   }}
-                  options={getChartOptions('Visibility (km)', false)}
+                  options={getChartOptions("Visibility (km)", false)}
                 />
               </div>
             </div>
@@ -981,22 +1204,26 @@ const Dashboard: React.FC = () => {
                 <Line
                   data={{
                     labels: timeLabels,
-                    datasets: [{
-                      label: 'Cloud Cover (%)',
-                      data: data?.satellite?.map(item => item.cloud_cover) || [],
-                      borderColor: '#607d8b',
-                      backgroundColor: 'rgba(96, 125, 139, 0.15)',
-                      borderWidth: 3,
-                      tension: 0.4,
-                      fill: true,
-                      pointBackgroundColor: '#607d8b',
-                      pointBorderColor: '#ffffff',
-                      pointBorderWidth: 2,
-                      pointRadius: 5,
-                      pointHoverRadius: 8
-                    }]
+                    datasets: [
+                      {
+                        label: "Cloud Cover (%)",
+                        data:
+                          data?.satellite?.map((item) => item.cloud_cover) ||
+                          [],
+                        borderColor: "#607d8b",
+                        backgroundColor: "rgba(96, 125, 139, 0.15)",
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: "#607d8b",
+                        pointBorderColor: "#ffffff",
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                      },
+                    ],
                   }}
-                  options={getChartOptions('Coverage (%)', false)}
+                  options={getChartOptions("Coverage (%)", false)}
                 />
               </div>
             </div>
@@ -1008,29 +1235,34 @@ const Dashboard: React.FC = () => {
                 <Line
                   data={{
                     labels: timeLabels,
-                    datasets: [{
-                      label: 'AOD',
-                      data: data?.satellite?.map(item => item.aerosol_optical_depth) || [],
-                      borderColor: '#ff5722',
-                      backgroundColor: 'rgba(255, 87, 34, 0.15)',
-                      borderWidth: 3,
-                      tension: 0.4,
-                      fill: true,
-                      pointBackgroundColor: '#ff5722',
-                      pointBorderColor: '#ffffff',
-                      pointBorderWidth: 2,
-                      pointRadius: 5,
-                      pointHoverRadius: 8
-                    }]
+                    datasets: [
+                      {
+                        label: "AOD",
+                        data:
+                          data?.satellite?.map(
+                            (item) => item.aerosol_optical_depth
+                          ) || [],
+                        borderColor: "#ff5722",
+                        backgroundColor: "rgba(255, 87, 34, 0.15)",
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: "#ff5722",
+                        pointBorderColor: "#ffffff",
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                      },
+                    ],
                   }}
-                  options={getChartOptions('AOD', false)}
+                  options={getChartOptions("AOD", false)}
                 />
               </div>
             </div>
           </div>
         )}
 
-        {selectedTab === 'health' && (
+        {selectedTab === "health" && (
           <div className="content-grid">
             {/* Health Index */}
             <div className="chart-container">
@@ -1039,22 +1271,27 @@ const Dashboard: React.FC = () => {
                 <Line
                   data={{
                     labels: timeLabels.slice(-12),
-                    datasets: [{
-                      label: 'Health Index',
-                      data: data?.health?.map(item => item.overall_health_index) || [],
-                      borderColor: '#4caf50',
-                      backgroundColor: 'rgba(76, 175, 80, 0.15)',
-                      borderWidth: 3,
-                      tension: 0.4,
-                      fill: true,
-                      pointBackgroundColor: '#4caf50',
-                      pointBorderColor: '#ffffff',
-                      pointBorderWidth: 2,
-                      pointRadius: 5,
-                      pointHoverRadius: 8
-                    }]
+                    datasets: [
+                      {
+                        label: "Health Index",
+                        data:
+                          data?.health?.map(
+                            (item) => item.overall_health_index
+                          ) || [],
+                        borderColor: "#4caf50",
+                        backgroundColor: "rgba(76, 175, 80, 0.15)",
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: "#4caf50",
+                        pointBorderColor: "#ffffff",
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                      },
+                    ],
                   }}
-                  options={getChartOptions('Index (0-10)', false)}
+                  options={getChartOptions("Index (0-10)", false)}
                 />
               </div>
             </div>
@@ -1066,22 +1303,26 @@ const Dashboard: React.FC = () => {
                 <Line
                   data={{
                     labels: timeLabels.slice(-12),
-                    datasets: [{
-                      label: 'Respiratory Risk',
-                      data: data?.health?.map(item => item.respiratory_risk) || [],
-                      borderColor: '#ff9800',
-                      backgroundColor: 'rgba(255, 152, 0, 0.15)',
-                      borderWidth: 3,
-                      tension: 0.4,
-                      fill: true,
-                      pointBackgroundColor: '#ff9800',
-                      pointBorderColor: '#ffffff',
-                      pointBorderWidth: 2,
-                      pointRadius: 5,
-                      pointHoverRadius: 8
-                    }]
+                    datasets: [
+                      {
+                        label: "Respiratory Risk",
+                        data:
+                          data?.health?.map((item) => item.respiratory_risk) ||
+                          [],
+                        borderColor: "#ff9800",
+                        backgroundColor: "rgba(255, 152, 0, 0.15)",
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: "#ff9800",
+                        pointBorderColor: "#ffffff",
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                      },
+                    ],
                   }}
-                  options={getChartOptions('Risk Level (0-10)', false)}
+                  options={getChartOptions("Risk Level (0-10)", false)}
                 />
               </div>
             </div>
@@ -1093,29 +1334,34 @@ const Dashboard: React.FC = () => {
                 <Line
                   data={{
                     labels: timeLabels.slice(-12),
-                    datasets: [{
-                      label: 'Cardiovascular Risk',
-                      data: data?.health?.map(item => item.cardiovascular_risk) || [],
-                      borderColor: '#f44336',
-                      backgroundColor: 'rgba(244, 67, 54, 0.15)',
-                      borderWidth: 3,
-                      tension: 0.4,
-                      fill: true,
-                      pointBackgroundColor: '#f44336',
-                      pointBorderColor: '#ffffff',
-                      pointBorderWidth: 2,
-                      pointRadius: 5,
-                      pointHoverRadius: 8
-                    }]
+                    datasets: [
+                      {
+                        label: "Cardiovascular Risk",
+                        data:
+                          data?.health?.map(
+                            (item) => item.cardiovascular_risk
+                          ) || [],
+                        borderColor: "#f44336",
+                        backgroundColor: "rgba(244, 67, 54, 0.15)",
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: "#f44336",
+                        pointBorderColor: "#ffffff",
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                      },
+                    ],
                   }}
-                  options={getChartOptions('Risk Level (0-10)', false)}
+                  options={getChartOptions("Risk Level (0-10)", false)}
                 />
               </div>
             </div>
           </div>
         )}
 
-        {selectedTab === 'forecast' && (
+        {selectedTab === "forecast" && (
           <div className="content-grid">
             {/* AQI Forecast */}
             <div className="chart-container">
@@ -1125,62 +1371,81 @@ const Dashboard: React.FC = () => {
                   labels: forecastLabels,
                   datasets: [
                     {
-                      label: 'Predicted AQI',
-                      data: data?.forecast?.map(item => item.predicted_aqi) || [],
-                      borderColor: '#1976d2',
-                      backgroundColor: 'rgba(25, 118, 210, 0.15)',
+                      label: "Predicted AQI",
+                      data:
+                        data?.forecast?.map((item) => item.predicted_aqi) || [],
+                      borderColor: "#1976d2",
+                      backgroundColor: "rgba(25, 118, 210, 0.15)",
                       borderWidth: 3,
                       tension: 0.4,
                       fill: true,
-                      pointBackgroundColor: '#1976d2',
-                      pointBorderColor: '#ffffff',
+                      pointBackgroundColor: "#1976d2",
+                      pointBorderColor: "#ffffff",
                       pointBorderWidth: 2,
                       pointRadius: 5,
-                      pointHoverRadius: 8
+                      pointHoverRadius: 8,
                     },
                     {
-                      label: 'Confidence Level (%)',
-                      data: data?.forecast?.map(item => item.confidence) || [],
-                      borderColor: '#4caf50',
-                      backgroundColor: 'rgba(76, 175, 80, 0.15)',
+                      label: "Confidence Level (%)",
+                      data:
+                        data?.forecast?.map((item) => item.confidence) || [],
+                      borderColor: "#4caf50",
+                      backgroundColor: "rgba(76, 175, 80, 0.15)",
                       borderWidth: 3,
                       tension: 0.4,
                       fill: true,
-                      yAxisID: 'y1',
-                      pointBackgroundColor: '#4caf50',
-                      pointBorderColor: '#ffffff',
+                      yAxisID: "y1",
+                      pointBackgroundColor: "#4caf50",
+                      pointBorderColor: "#ffffff",
                       pointBorderWidth: 2,
                       pointRadius: 5,
-                      pointHoverRadius: 8
-                    }
-                  ]
+                      pointHoverRadius: 8,
+                    },
+                  ],
                 }}
-                options={{
-                  ...getChartOptions('Predicted AQI', true),
-                  scales: {
-                    x: {
-                      title: { display: true, text: 'Time', color: '#1976d2', font: { family: 'Montserrat' } },
-                      ticks: { color: '#1976d2' },
-                      grid: { color: 'rgba(25, 118, 210, 0.1)' }
+                options={
+                  {
+                    ...getChartOptions("Predicted AQI", true),
+                    scales: {
+                      x: {
+                        title: {
+                          display: true,
+                          text: "Time",
+                          color: "#1976d2",
+                          font: { family: "Montserrat" },
+                        },
+                        ticks: { color: "#1976d2" },
+                        grid: { color: "rgba(25, 118, 210, 0.1)" },
+                      },
+                      y: {
+                        type: "linear",
+                        display: true,
+                        position: "left",
+                        title: {
+                          display: true,
+                          text: "AQI",
+                          color: "#1976d2",
+                          font: { family: "Montserrat" },
+                        },
+                        ticks: { color: "#1976d2" },
+                        grid: { color: "rgba(25, 118, 210, 0.1)" },
+                      },
+                      y1: {
+                        type: "linear",
+                        display: true,
+                        position: "right",
+                        title: {
+                          display: true,
+                          text: "Confidence (%)",
+                          color: "#4caf50",
+                          font: { family: "Montserrat" },
+                        },
+                        ticks: { color: "#4caf50" },
+                        grid: { drawOnChartArea: false },
+                      },
                     },
-                    y: {
-                      type: 'linear',
-                      display: true,
-                      position: 'left',
-                      title: { display: true, text: 'AQI', color: '#1976d2', font: { family: 'Montserrat' } },
-                      ticks: { color: '#1976d2' },
-                      grid: { color: 'rgba(25, 118, 210, 0.1)' }
-                    },
-                    y1: {
-                      type: 'linear',
-                      display: true,
-                      position: 'right',
-                      title: { display: true, text: 'Confidence (%)', color: '#4caf50', font: { family: 'Montserrat' } },
-                      ticks: { color: '#4caf50' },
-                      grid: { drawOnChartArea: false }
-                    }
-                  }
-                } as ChartOptions<'line'>}
+                  } as ChartOptions<"line">
+                }
               />
             </div>
 
@@ -1212,12 +1477,28 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         )}
+
+        {selectedTab === "ml-forecast" && (
+          <div className="ml-forecast-container">
+            <AQIForecast
+              location={useCurrentLocation ? geoLocationName : selectedLocation}
+              lat={useCurrentLocation ? userCoordinates?.lat : undefined}
+              lon={useCurrentLocation ? userCoordinates?.lon : undefined}
+              autoRefresh={true}
+              refreshInterval={300}
+            />
+          </div>
+        )}
       </div>
 
       {/* Refresh Button */}
-      <button className="refresh-btn" onClick={fetchDashboardData} title="Refresh Data">
+      <button
+        className="refresh-btn"
+        onClick={fetchDashboardData}
+        title="Refresh Data"
+      >
         <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+          <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
         </svg>
       </button>
     </div>
