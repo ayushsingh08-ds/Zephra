@@ -1,11 +1,11 @@
 @echo off
 echo Starting Zephra Backend...
-cd /d "D:\Visual Studio Codes\Projects\Zephra\backend"
+cd /d "D:\Visual Studio Codes\Projects\Zephra\backend\api"
 echo Current directory: %cd%
 echo Checking Python environment...
 python --version
 echo Installing dependencies if needed...
-pip install -r requirements.txt --quiet
+pip install -r ../requirements.txt --quiet
 echo Starting FastAPI server...
 python zephra_api.py
 pause

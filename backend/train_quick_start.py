@@ -272,7 +272,7 @@ def main():
     print("🎉 ALL DONE!")
     print("="*60)
     print("\nNext steps:")
-    print("1. Start the API: python zephra_api.py")
+    print("1. Start the API: python api/zephra_api.py")
     print("2. Check model info: http://localhost:5000/api/ml-model-info")
     print("3. Get forecasts: http://localhost:5000/api/dashboard?location=New%20York")
     print("\nFor production:")

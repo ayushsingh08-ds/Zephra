@@ -131,7 +131,7 @@ const validateDataFreshness = (timestamp) => {
 
 1. **Start Backend Server**:
    ```bash
-   cd "D:\Visual Studio Codes\Projects\Zephra\backend"
+   cd "D:\Visual Studio Codes\Projects\Zephra\backend\api"
    python zephra_api.py
    ```
 
