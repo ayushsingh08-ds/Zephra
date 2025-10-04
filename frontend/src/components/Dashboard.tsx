@@ -17,6 +17,9 @@ import {
 import AQIForecast from "./AQIForecast";
 import "./Dashboard.css";
 
+// API Configuration
+const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'https://zephra.onrender.com';
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -194,7 +197,7 @@ const Dashboard: React.FC = () => {
     setLocations(defaultLocations);
 
     try {
-      const response = await fetch("http://localhost:5000/api/locations");
+      const response = await fetch(`${API_BASE_URL}/api/locations`);
       if (response.ok) {
         const locationData = await response.json();
         setLocations(locationData.locations || defaultLocations);
@@ -211,7 +214,7 @@ const Dashboard: React.FC = () => {
       setError(null);
 
       const response = await fetch(
-        `http://localhost:5000/api/dashboard?location=${encodeURIComponent(
+        `${API_BASE_URL}/api/dashboard?location=${encodeURIComponent(
           selectedLocation
         )}`
       );
