@@ -1534,45 +1534,205 @@ const Dashboard: React.FC = () => {
               />
             </div>
 
-            {/* Forecast Summary */}
+            {/* Forecast Summary Chart */}
             <div className="chart-container">
-              <h3>Forecast Summary</h3>
-              <div className="forecast-summary">
-                {data?.forecast?.map((item, index) => (
-                  <div key={index} className="forecast-item">
-                    <div className="forecast-time">{item.hour}</div>
-                    <div className="forecast-aqi">
-                      AQI: {Math.round(item.predicted_aqi)}
-                    </div>
-                    <div className="forecast-confidence">
-                      {Math.round(item.confidence)}% confident
-                    </div>
-                    <div
-                      className={`forecast-status ${
-                        item.predicted_aqi <= 50
-                          ? "good"
-                          : item.predicted_aqi <= 100
-                          ? "moderate"
-                          : item.predicted_aqi <= 150
-                          ? "unhealthy-sensitive"
-                          : item.predicted_aqi <= 200
-                          ? "unhealthy"
-                          : "very-unhealthy"
-                      }`}
-                    >
-                      {item.predicted_aqi <= 50
-                        ? "Good"
-                        : item.predicted_aqi <= 100
-                        ? "Moderate"
-                        : item.predicted_aqi <= 150
-                        ? "Unhealthy for Sensitive Groups"
-                        : item.predicted_aqi <= 200
-                        ? "Unhealthy"
-                        : "Very Unhealthy"}
-                    </div>
-                  </div>
-                )) || []}
-              </div>
+              <h3>Comprehensive Forecast Summary</h3>
+              <Line
+                data={{
+                  labels: forecastLabels,
+                  datasets: [
+                    {
+                      label: "Predicted AQI",
+                      data: data?.forecast?.map((item) => item.predicted_aqi) || [],
+                      borderColor: "#1976d2",
+                      backgroundColor: "rgba(25, 118, 210, 0.1)",
+                      borderWidth: 3,
+                      tension: 0.4,
+                      fill: false,
+                      pointBackgroundColor: "#1976d2",
+                      pointBorderColor: "#ffffff",
+                      pointBorderWidth: 2,
+                      pointRadius: 6,
+                      pointHoverRadius: 9,
+                      yAxisID: "y"
+                    },
+                    {
+                      label: "Confidence Level (%)",
+                      data: data?.forecast?.map((item) => item.confidence) || [],
+                      borderColor: "#4caf50",
+                      backgroundColor: "rgba(76, 175, 80, 0.1)",
+                      borderWidth: 2,
+                      borderDash: [5, 5],
+                      tension: 0.4,
+                      fill: false,
+                      pointBackgroundColor: "#4caf50",
+                      pointBorderColor: "#ffffff",
+                      pointBorderWidth: 1,
+                      pointRadius: 4,
+                      pointHoverRadius: 7,
+                      yAxisID: "y1"
+                    },
+                    {
+                      label: "Air Quality Trend",
+                      data: data?.forecast?.map((item, index) => {
+                        // Calculate trend based on previous values
+                        if (index === 0) return item.predicted_aqi;
+                        const prevAqi = data?.forecast?.[index - 1]?.predicted_aqi || item.predicted_aqi;
+                        return prevAqi + (item.predicted_aqi - prevAqi) * 0.8; // Smoothed trend
+                      }) || [],
+                      borderColor: "#ff9800",
+                      backgroundColor: "rgba(255, 152, 0, 0.05)",
+                      borderWidth: 2,
+                      tension: 0.6,
+                      fill: true,
+                      pointBackgroundColor: "#ff9800",
+                      pointBorderColor: "#ffffff",
+                      pointBorderWidth: 1,
+                      pointRadius: 3,
+                      pointHoverRadius: 6,
+                      yAxisID: "y"
+                    }
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  aspectRatio: 2.5,
+                  animation: {
+                    duration: 1500,
+                    easing: 'easeInOutQuart'
+                  },
+                  interaction: {
+                    mode: 'index',
+                    intersect: false
+                  },
+                  plugins: {
+                    legend: {
+                      display: true,
+                      position: 'top',
+                      labels: {
+                        color: '#1976d2',
+                        font: {
+                          family: 'Montserrat',
+                          size: 12,
+                          weight: 600
+                        },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                      }
+                    },
+                    tooltip: {
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      titleColor: '#1976d2',
+                      bodyColor: '#666',
+                      borderColor: '#1976d2',
+                      borderWidth: 1,
+                      cornerRadius: 8,
+                      callbacks: {
+                        afterLabel: function(context: any) {
+                          if (context.datasetIndex === 0) {
+                            const aqi = context.parsed.y;
+                            let status = '';
+                            if (aqi <= 50) status = '🟢 Good';
+                            else if (aqi <= 100) status = '🟡 Moderate';
+                            else if (aqi <= 150) status = '🟠 Unhealthy for Sensitive';
+                            else if (aqi <= 200) status = '🔴 Unhealthy';
+                            else status = '🟣 Very Unhealthy';
+                            return `Status: ${status}`;
+                          }
+                          return '';
+                        }
+                      }
+                    }
+                  },
+                  scales: {
+                    x: {
+                      title: {
+                        display: true,
+                        text: 'Forecast Time',
+                        color: '#1976d2',
+                        font: {
+                          family: 'Montserrat',
+                          size: 13,
+                          weight: 700
+                        }
+                      },
+                      ticks: {
+                        color: '#1976d2',
+                        font: {
+                          family: 'Montserrat',
+                          size: 11
+                        }
+                      },
+                      grid: {
+                        color: 'rgba(25, 118, 210, 0.1)',
+                        drawBorder: false
+                      }
+                    },
+                    y: {
+                      type: 'linear',
+                      display: true,
+                      position: 'left',
+                      title: {
+                        display: true,
+                        text: 'Air Quality Index (AQI)',
+                        color: '#1976d2',
+                        font: {
+                          family: 'Montserrat',
+                          size: 13,
+                          weight: 700
+                        }
+                      },
+                      ticks: {
+                        color: '#1976d2',
+                        font: {
+                          family: 'Montserrat',
+                          size: 11
+                        },
+                        callback: function(value: any) {
+                          return Math.round(value);
+                        }
+                      },
+                      grid: {
+                        color: 'rgba(25, 118, 210, 0.1)',
+                        drawBorder: false
+                      },
+                      beginAtZero: true
+                    },
+                    y1: {
+                      type: 'linear',
+                      display: true,
+                      position: 'right',
+                      title: {
+                        display: true,
+                        text: 'Confidence Level (%)',
+                        color: '#4caf50',
+                        font: {
+                          family: 'Montserrat',
+                          size: 13,
+                          weight: 700
+                        }
+                      },
+                      ticks: {
+                        color: '#4caf50',
+                        font: {
+                          family: 'Montserrat',
+                          size: 11
+                        },
+                        callback: function(value: any) {
+                          return Math.round(value) + '%';
+                        }
+                      },
+                      grid: {
+                        drawOnChartArea: false,
+                        drawBorder: false
+                      },
+                      min: 0,
+                      max: 100
+                    }
+                  }
+                } as ChartOptions<'line'>}
+              />
             </div>
           </div>
         )}
